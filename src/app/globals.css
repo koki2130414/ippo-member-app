@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/*
+ * 色は必ずここのトークン経由で使う（仕様 3章: 色の直書き禁止）。
+ * HSL の成分だけを変数に持たせ、透明度を後から掛けられるようにしている。
+ * IPPO のブランド色（ターコイズ／ネイビー）を primary / secondary に割り当てる。
+ */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 216 50% 14%;
+  --muted: 200 30% 96%;
+  --muted-foreground: 215 16% 40%;
+  --card: 0 0% 100%;
+  --card-foreground: 216 50% 14%;
+  --border: 200 20% 88%;
+  --input: 200 20% 82%;
+  --ring: 178 70% 38%;
+  --primary: 178 70% 36%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 216 55% 22%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 44 95% 58%;
+  --accent-foreground: 216 50% 14%;
+  /* 警告は「外でも見られる」表示など、見落とされると困るものだけに使う */
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 150 55% 34%;
+  --radius: 0.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 216 45% 9%;
+    --foreground: 200 30% 96%;
+    --muted: 216 35% 16%;
+    --muted-foreground: 210 15% 70%;
+    --card: 216 40% 12%;
+    --card-foreground: 200 30% 96%;
+    --border: 216 30% 22%;
+    --input: 216 30% 28%;
+    --primary: 178 65% 45%;
+    --secondary: 210 45% 70%;
+    --secondary-foreground: 216 45% 9%;
+    --destructive: 0 75% 62%;
+  }
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --radius-lg: var(--radius);
+  --font-sans: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
