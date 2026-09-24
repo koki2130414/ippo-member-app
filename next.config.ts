@@ -13,6 +13,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // フレームワーク名を名乗る意味がないので消す
   poweredByHeader: false,
+  experimental: {
+    // 権限の無い画面を、転送ではなく本当の 403 で返すため（仕様 13章-5: サーバー側でも 403）
+    authInterrupts: true,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

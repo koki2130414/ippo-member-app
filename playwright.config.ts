@@ -15,8 +15,10 @@ export default defineConfig({
   },
   // 仕様 11章: モバイルとデスクトップの2プロジェクト。生徒の大半はスマホで使う想定
   projects: [
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    // ロールごとにログイン済みの状態（storageState）を先に作っておく
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    { name: "mobile", use: { ...devices["Pixel 7"] }, dependencies: ["setup"] },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] }, dependencies: ["setup"] },
   ],
   webServer: {
     // E2E は必ずサンプルデータで回す（毎回同じ状態から始めるため。仕様 10.7）
