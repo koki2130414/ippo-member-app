@@ -4,7 +4,9 @@ import type {
   Diagnosis,
   DiagnosisQuestion,
   ExchangeItem,
+  Lecture,
   LectureCategory,
+  LectureProgress,
   Membership,
   Plan,
   PlanCode,
@@ -12,12 +14,15 @@ import type {
   PointTransaction,
   PrivateProfile,
   PublicProfile,
+  QuizQuestion,
   SoccerNote,
   UserId,
   UserRole,
   Video,
   VideoCategory,
+  VideoProgress,
   VideoReview,
+  ViewSession,
 } from "@/domain/types";
 
 /**
@@ -100,6 +105,22 @@ export interface DataStore {
   listVideos(query: PageQuery & { category?: VideoCategory; publishedOnly: boolean }): Promise<Page<Video>>;
   listClassRooms(): Promise<ClassRoom[]>;
   listLectureCategories(): Promise<LectureCategory[]>;
+  listLectures(query: PageQuery & { categoryId?: string; publishedOnly: boolean }): Promise<Page<Lecture>>;
+  getLecture(lectureId: string): Promise<Lecture | null>;
+  /** 正解フラグを含む。サービス層で DTO に変換してからしか外へ出さない */
+  listQuizQuestions(lectureId: string): Promise<QuizQuestion[]>;
+
+  // --- 学習の進み具合 ---
+  createViewSession(session: ViewSession): Promise<void>;
+  getViewSession(sessionId: string): Promise<ViewSession | null>;
+  getVideoProgress(userId: UserId, videoId: string): Promise<VideoProgress | null>;
+  listVideoProgress(userId: UserId): Promise<VideoProgress[]>;
+  /** 完了にする。すでに完了なら何もしない（最初の完了日時を残す） */
+  markVideoCompleted(progress: VideoProgress): Promise<{ firstTime: boolean }>;
+  getLectureProgress(userId: UserId, lectureId: string): Promise<LectureProgress | null>;
+  listLectureProgress(userId: UserId): Promise<LectureProgress[]>;
+  markLectureCompleted(input: { userId: UserId; lectureId: string; completedAt: string }): Promise<{ firstTime: boolean }>;
+  markQuizPassed(input: { userId: UserId; lectureId: string; passedAt: string }): Promise<{ firstTime: boolean }>;
   getDiagnosis(diagnosisId: string): Promise<{ diagnosis: Diagnosis; questions: DiagnosisQuestion[] } | null>;
   listDiagnoses(): Promise<Diagnosis[]>;
 
