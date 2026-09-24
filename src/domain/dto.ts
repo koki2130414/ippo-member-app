@@ -45,6 +45,17 @@ export function toVideoSummary(video: Video): VideoSummary {
   };
 }
 
+/**
+ * 再生の許可。配信元ごとに、クライアントが再生に使う最小限の情報だけを持つ。
+ * これは Server Action（POST）の戻り値でだけ渡す。ページの HTML や RSC ペイロードには載せない。
+ */
+export type PlaybackGrant =
+  | { kind: "signed_url"; url: string; expiresAt: string }
+  | { kind: "mux"; playbackId: string; token: string; expiresAt: string }
+  | { kind: "youtube"; youtubeId: string }
+  /** デモモード（Storage や Mux の鍵が無い）で、再生の代わりに見せるもの。秘密は何も含まない */
+  | { kind: "demo"; reason: "no_storage" | "no_mux_key" };
+
 // ---------------------------------------------------------------------------
 // クイズ・診断（正解を送信前に渡さない）
 // ---------------------------------------------------------------------------

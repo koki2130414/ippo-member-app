@@ -225,6 +225,27 @@ export interface VideoProgress {
   completedAt: IsoDateTime | null;
 }
 
+/**
+ * 「見はじめた／読みはじめた」の記録。完了を自己申告だけで認めないために、サーバーが開始時刻を持つ。
+ * 再生トークンを発行したとき（動画）、講義ページを開いて POST が来たとき（講義）に作る。
+ */
+export interface ViewSession {
+  id: string;
+  userId: UserId;
+  kind: "video" | "lecture";
+  targetId: string;
+  startedAt: IsoDateTime;
+}
+
+export interface LectureProgress {
+  userId: UserId;
+  lectureId: string;
+  /** 読み終わった日時。クイズだけ先に合格した場合は null */
+  completedAt: IsoDateTime | null;
+  /** クイズに合格した日時。何度でも挑戦できるが、ポイントは合格1回分だけ */
+  quizPassedAt: IsoDateTime | null;
+}
+
 // ---------------------------------------------------------------------------
 // 講義とクイズ
 // ---------------------------------------------------------------------------
