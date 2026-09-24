@@ -1,8 +1,9 @@
-import { listPlansForDisplay } from "@/domain/plans";
-import { formatLimitForDisplay } from "@/domain/plans";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { formatLimitForDisplay, listPlansForDisplay } from "@/domain/plans";
 
 // Phase 1 時点の LP は「料金表がドメイン層の数値から描けること」を確かめる最小版。
-// 世界観・クラス紹介・FAQ・問い合わせは Phase 2 で足す（docs/05）。
+// 世界観・クラス紹介・FAQ・問い合わせは今後足す（docs/05）。
 export default function LandingPage() {
   const plans = listPlansForDisplay();
   return (
@@ -12,6 +13,9 @@ export default function LandingPage() {
       <p className="mt-4 text-muted-foreground">
         だれかと比べるのではなく、きのうの自分と比べよう。少しずつ続けることを、いっしょに応援します。
       </p>
+      <Link href="/login" className={`${buttonVariants({ size: "lg" })} mt-6`} data-testid="lp-login">
+        会員の方はこちら（ログイン）
+      </Link>
 
       <section aria-labelledby="plans-heading" className="mt-10">
         <h2 id="plans-heading" className="text-xl font-bold">料金プラン</h2>
