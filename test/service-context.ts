@@ -15,6 +15,7 @@ export function createTestContext(options: { seed?: "empty" | "sample"; now?: st
     store: new MockDataStore(state),
     now: () => new Date(current),
     newId: () => `test-id-${String(++sequence).padStart(4, "0")}`,
+    media: { storageAvailable: false, muxSigningKey: null },
   };
   return {
     context,
