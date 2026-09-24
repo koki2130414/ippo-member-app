@@ -3,6 +3,7 @@ import type { MockState } from "../mock/mock-state";
 import { SEED_CREATED_AT } from "./base-content";
 import { createEmptySeed } from "./empty";
 import { DEMO_IDS } from "./ids";
+import { SAMPLE_EXTRA_VIDEOS, SAMPLE_LECTURES, SAMPLE_QUIZ_QUESTIONS } from "./sample-learning";
 
 /**
  * 画面確認用の架空データ（IPPO_SEED=sample のときだけ使う）。
@@ -120,6 +121,10 @@ export function createSampleSeed(): MockState {
       createdBy: DEMO_IDS.admin,
     },
   );
+
+  state.videos.push(...structuredClone(SAMPLE_EXTRA_VIDEOS));
+  state.lectures.push(...structuredClone(SAMPLE_LECTURES));
+  state.quizQuestions.push(...structuredClone(SAMPLE_QUIZ_QUESTIONS));
 
   state.soccerNotes.push(
     {
