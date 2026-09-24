@@ -6,7 +6,9 @@ import type {
   Diagnosis,
   DiagnosisQuestion,
   ExchangeItem,
+  Lecture,
   LectureCategory,
+  LectureProgress,
   Membership,
   ParentStudentLink,
   Plan,
@@ -14,9 +16,12 @@ import type {
   PointTransaction,
   PrivateProfile,
   PublicProfile,
+  QuizQuestion,
   SoccerNote,
   Video,
+  VideoProgress,
   VideoReview,
+  ViewSession,
 } from "@/domain/types";
 
 /**
@@ -38,6 +43,11 @@ export interface MockState {
   videos: Video[];
   classRooms: ClassRoom[];
   lectureCategories: LectureCategory[];
+  lectures: Lecture[];
+  quizQuestions: QuizQuestion[];
+  lectureProgress: LectureProgress[];
+  videoProgress: VideoProgress[];
+  viewSessions: ViewSession[];
   diagnoses: Diagnosis[];
   diagnosisQuestions: DiagnosisQuestion[];
   soccerNotes: SoccerNote[];

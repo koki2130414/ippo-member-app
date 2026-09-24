@@ -1,5 +1,5 @@
 import { decideExchange, sumBalance } from "@/domain/points";
-import type { AuditLog, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory } from "@/domain/types";
+import type { AuditLog, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
 import type { AppendPointResult, DataStore, ExchangeResult, NewMember, Page, PageQuery } from "../data-store";
 import type { MockState } from "./mock-state";
 
@@ -182,6 +182,84 @@ export class MockDataStore implements DataStore {
 
   async listLectureCategories() {
     return structuredClone([...this.state.lectureCategories].sort((a, b) => a.sortOrder - b.sortOrder));
+  }
+
+  async listLectures(query: PageQuery & { categoryId?: string; publishedOnly: boolean }) {
+    const filtered = this.state.lectures.filter(
+      (lecture) => (query.categoryId === undefined || lecture.categoryId === query.categoryId) && (!query.publishedOnly || lecture.publishedAt !== null),
+    );
+    return paginate(filtered, query);
+  }
+
+  async getLecture(lectureId: string) {
+    return copyOrNull(this.state.lectures.find((lecture) => lecture.id === lectureId));
+  }
+
+  async listQuizQuestions(lectureId: string) {
+    return structuredClone(this.state.quizQuestions.filter((question) => question.lectureId === lectureId));
+  }
+
+  // --- 学習の進み具合 ---
+
+  async createViewSession(session: ViewSession) {
+    this.state.viewSessions.push(structuredClone(session));
+    // デモのメモリが増え続けないよう、古いものから捨てる（完了判定には直近のものしか使わない）
+    if (this.state.viewSessions.length > 5000) this.state.viewSessions.splice(0, this.state.viewSessions.length - 5000);
+  }
+
+  async getViewSession(sessionId: string) {
+    return copyOrNull(this.state.viewSessions.find((session) => session.id === sessionId));
+  }
+
+  async getVideoProgress(userId: UserId, videoId: string) {
+    return copyOrNull(this.state.videoProgress.find((progress) => progress.userId === userId && progress.videoId === videoId));
+  }
+
+  async listVideoProgress(userId: UserId) {
+    return structuredClone(this.state.videoProgress.filter((progress) => progress.userId === userId));
+  }
+
+  async markVideoCompleted(progress: VideoProgress) {
+    const existing = this.state.videoProgress.find((item) => item.userId === progress.userId && item.videoId === progress.videoId);
+    if (existing?.completedAt) return { firstTime: false };
+    if (existing) {
+      existing.completedAt = progress.completedAt;
+      existing.watchedSeconds = Math.max(existing.watchedSeconds, progress.watchedSeconds);
+    } else {
+      this.state.videoProgress.push(structuredClone(progress));
+    }
+    return { firstTime: true };
+  }
+
+  async getLectureProgress(userId: UserId, lectureId: string) {
+    return copyOrNull(this.state.lectureProgress.find((progress) => progress.userId === userId && progress.lectureId === lectureId));
+  }
+
+  async listLectureProgress(userId: UserId) {
+    return structuredClone(this.state.lectureProgress.filter((progress) => progress.userId === userId));
+  }
+
+  async markLectureCompleted(input: { userId: UserId; lectureId: string; completedAt: string }) {
+    const existing = this.state.lectureProgress.find((item) => item.userId === input.userId && item.lectureId === input.lectureId);
+    if (existing?.completedAt) return { firstTime: false };
+    if (existing) {
+      existing.completedAt = input.completedAt;
+    } else {
+      this.state.lectureProgress.push({ userId: input.userId, lectureId: input.lectureId, completedAt: input.completedAt, quizPassedAt: null });
+    }
+    return { firstTime: true };
+  }
+
+  async markQuizPassed(input: { userId: UserId; lectureId: string; passedAt: string }) {
+    const existing = this.state.lectureProgress.find((item) => item.userId === input.userId && item.lectureId === input.lectureId);
+    if (existing?.quizPassedAt) return { firstTime: false };
+    if (existing) {
+      existing.quizPassedAt = input.passedAt;
+    } else {
+      // クイズだけ先に解いた場合も、講義は「読んだ」扱いにはしない（読了は別の判定）。合格だけを記録する
+      this.state.lectureProgress.push({ userId: input.userId, lectureId: input.lectureId, completedAt: null, quizPassedAt: input.passedAt });
+    }
+    return { firstTime: true };
   }
 
   async getDiagnosis(diagnosisId: string) {
