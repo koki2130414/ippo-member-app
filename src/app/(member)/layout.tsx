@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
+import { isGuestUserId } from "@/data/seed/ids";
 import { getCurrentActor, getServiceContext } from "@/server/current-actor";
 import { isDemoMode } from "@/server/env";
 
@@ -13,7 +14,7 @@ export default async function MemberLayout({ children }: { children: React.React
   const profile = await getServiceContext().store.getPublicProfile(actor.userId);
   return (
     <>
-      <SiteHeader role={actor.role} displayName={profile?.displayName ?? ""} isDemo={isDemoMode()} />
+      <SiteHeader role={actor.role} displayName={profile?.displayName ?? ""} isDemo={isDemoMode()} isGuest={isGuestUserId(actor.userId)} />
       {children}
     </>
   );
