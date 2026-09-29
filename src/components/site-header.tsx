@@ -24,10 +24,14 @@ const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: strin
 const ROLE_LABEL: Record<UserRole, string> = { student: "生徒", guardian: "保護者", coach: "コーチ", admin: "運営" };
 
 /** 会員画面の共通ヘッダー。表示名だけを出し、本名は出さない */
-export function SiteHeader({ role, displayName, isDemo }: { role: UserRole; displayName: string; isDemo: boolean }) {
+export function SiteHeader({ role, displayName, isDemo, isGuest }: { role: UserRole; displayName: string; isDemo: boolean; isGuest: boolean }) {
   return (
     <header className="border-b border-border bg-background" data-role={role}>
-      {isDemo ? (
+      {isGuest ? (
+        <p className="bg-accent px-4 py-1 text-center text-xs font-semibold text-accent-foreground" data-testid="guest-banner">
+          見学モードです（ログインしていません）。「見おわった」やポイントは記録されません
+        </p>
+      ) : isDemo ? (
         <p className="bg-accent px-4 py-1 text-center text-xs font-semibold text-accent-foreground" data-testid="demo-banner">
           デモモードです。ここで作ったデータは、サーバーが再起動すると消えます
         </p>
@@ -40,7 +44,7 @@ export function SiteHeader({ role, displayName, isDemo }: { role: UserRole; disp
             <span className="ml-1 text-xs text-muted-foreground">（{ROLE_LABEL[role]}）</span>
           </span>
           <form action={signOutAction}>
-            <Button type="submit" variant="ghost" size="sm" data-testid="header-sign-out">ログアウト</Button>
+            <Button type="submit" variant="ghost" size="sm" data-testid="header-sign-out">{isGuest ? "見学をおわる" : "ログアウト"}</Button>
           </form>
         </div>
       </div>

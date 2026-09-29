@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PlaybackGrant, VideoSummary } from "@/domain/dto";
+import { describeRemaining } from "@/domain/learning";
 import { completeVideoAction, startPlaybackAction } from "@/server/actions/learning-actions";
 import { StatusMessage } from "./status-message";
 import { Button } from "./ui/button";
@@ -98,7 +99,7 @@ export function VideoPlayer({ video, minimumWatchSeconds, canEarnPoints, initial
             見おわった！
           </Button>
           <p className="text-xs text-muted-foreground" data-testid="video-complete-hint">
-            {remaining > 0 ? `あと${remaining}秒くらいで「見おわった」にできるよ` : "「見おわった」をおせるよ"}
+            {remaining > 0 ? `${describeRemaining(remaining)}で「見おわった」にできるよ` : "「見おわった」をおせるよ"}
           </p>
         </div>
       ) : null}

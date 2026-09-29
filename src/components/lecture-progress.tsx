@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { describeRemaining } from "@/domain/learning";
 import { completeLectureAction, startLectureAction } from "@/server/actions/learning-actions";
 import { StatusMessage } from "./status-message";
 import { Button } from "./ui/button";
@@ -69,7 +70,7 @@ export function LectureProgress({ lectureId, minimumReadSeconds, initiallyComple
         読みおわった！
       </Button>
       <p className="text-xs text-muted-foreground" data-testid="lecture-complete-hint">
-        {remaining > 0 ? `あと${remaining}秒くらいで「読みおわった」にできるよ` : "「読みおわった」をおせるよ"}
+        {remaining > 0 ? `${describeRemaining(remaining)}で「読みおわった」にできるよ` : "「読みおわった」をおせるよ"}
       </p>
       {result ? <StatusMessage tone={result.tone} testId="lecture-complete-result">{result.text}</StatusMessage> : null}
     </div>
