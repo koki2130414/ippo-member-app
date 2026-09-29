@@ -4,6 +4,7 @@ import type { Entitlement } from "@/domain/plans";
 import { findUnanswered, gradeQuiz, type Answers } from "@/domain/scoring";
 import type { Actor, Lecture, LectureCategory } from "@/domain/types";
 import type { Page } from "@/data/data-store";
+import { isGuestUserId } from "@/data/seed/ids";
 import { evaluateAccess } from "./access";
 import type { ServiceContext } from "./context";
 import { ServiceError, invalid, notFound } from "./errors";
@@ -79,7 +80,7 @@ export async function getLectureDetail(context: ServiceContext, actor: Actor | n
     completed: progress?.completedAt != null,
     quizPassed: progress?.quizPassedAt != null,
     access,
-    canEarnPoints: member.role === "student",
+    canEarnPoints: member.role === "student" && !isGuestUserId(member.userId),
   };
 }
 
@@ -94,6 +95,7 @@ async function requireLectureAccess(context: ServiceContext, actor: Actor, lectu
 /** 講義を開いたときに、ブラウザから POST で呼ばれる。読み終わりの判定の起点になる */
 export async function startLectureReading(context: ServiceContext, actor: Actor | null, lectureId: string): Promise<{ viewSessionId: string }> {
   const student = requireRole(actor, ["student"], "lecture.start");
+  if (isGuestUserId(student.userId)) throw invalid("見学中は記録できません。会員になるとクイズやポイントが使えます", "lecture.start:guest");
   const lecture = await requireLectureAccess(context, student, lectureId);
   const viewSessionId = context.newId();
   await context.store.createViewSession({ id: viewSessionId, userId: student.userId, kind: "lecture", targetId: lecture.id, startedAt: context.now().toISOString() });
@@ -104,6 +106,7 @@ export type CompleteLectureResult = { kind: "completed"; points: AwardOutcome } 
 
 export async function completeLecture(context: ServiceContext, actor: Actor | null, input: { lectureId: string; viewSessionId: string }): Promise<CompleteLectureResult> {
   const student = requireRole(actor, ["student"], "lecture.complete");
+  if (isGuestUserId(student.userId)) throw invalid("見学中は記録できません。会員になるとクイズやポイントが使えます", "lecture.complete:guest");
   const lecture = await requireLectureAccess(context, student, input.lectureId);
   const check = checkViewCompletion({
     session: await context.store.getViewSession(input.viewSessionId),
@@ -132,6 +135,7 @@ export interface QuizSubmissionResult {
 /** クイズの採点。何度でも挑戦できる。ポイントは初めて合格したときだけ（冪等キーでも二重に付かない） */
 export async function submitQuiz(context: ServiceContext, actor: Actor | null, input: { lectureId: string; answers: Answers }): Promise<QuizSubmissionResult> {
   const student = requireRole(actor, ["student"], "quiz.submit");
+  if (isGuestUserId(student.userId)) throw invalid("見学中は記録できません。会員になるとクイズやポイントが使えます", "quiz.submit:guest");
   const lecture = await requireLectureAccess(context, student, input.lectureId);
   const questions = await context.store.listQuizQuestions(lecture.id);
   if (questions.length === 0) throw invalid("この講義にはクイズがありません");

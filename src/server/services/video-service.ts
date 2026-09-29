@@ -3,6 +3,7 @@ import { checkViewCompletion, describeCompletionCheck, minimumVideoWatchSeconds 
 import type { Entitlement } from "@/domain/plans";
 import type { Actor, VideoCategory } from "@/domain/types";
 import type { Page } from "@/data/data-store";
+import { isGuestUserId } from "@/data/seed/ids";
 import { evaluateAccess } from "./access";
 import type { ServiceContext } from "./context";
 import { ServiceError, invalid, notFound } from "./errors";
@@ -66,7 +67,8 @@ export async function getVideoDetail(context: ServiceContext, actor: Actor | nul
     completed: progress?.completedAt != null,
     minimumWatchSeconds: minimumVideoWatchSeconds(video.durationSeconds),
     access,
-    canEarnPoints: member.role === "student",
+    // 見学用アカウントは記録もポイントもしない（共用なので、だれの記録でもなくなる）
+    canEarnPoints: member.role === "student" && !isGuestUserId(member.userId),
   };
 }
 
@@ -89,7 +91,7 @@ export async function startPlayback(context: ServiceContext, actor: Actor | null
 
   const now = context.now();
   let viewSessionId: string | null = null;
-  if (member.role === "student") {
+  if (member.role === "student" && !isGuestUserId(member.userId)) {
     viewSessionId = context.newId();
     await context.store.createViewSession({ id: viewSessionId, userId: member.userId, kind: "video", targetId: video.id, startedAt: now.toISOString() });
   }
@@ -117,6 +119,7 @@ export type CompleteVideoResult = { kind: "completed"; points: AwardOutcome } | 
 /** 視聴完了。再生を始めてから長さの8割の時間が経っていることを、サーバーの時計で確かめる */
 export async function completeVideo(context: ServiceContext, actor: Actor | null, input: { videoId: string; viewSessionId: string }): Promise<CompleteVideoResult> {
   const student = requireRole(actor, ["student"], "video.complete");
+  if (isGuestUserId(student.userId)) throw invalid("見学中は「見おわった」を記録できません", "video.complete:guest");
   const video = await context.store.getVideo(input.videoId);
   if (!video || video.publishedAt === null) throw notFound("video.complete");
 

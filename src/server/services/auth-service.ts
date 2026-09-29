@@ -1,3 +1,4 @@
+import { isGuestUserId } from "@/data/seed/ids";
 import { toJstDate } from "@/domain/jst";
 import { computeStreak, isStreakBonusDay } from "@/domain/points";
 import type { Actor, UserId, UserRole } from "@/domain/types";
@@ -11,8 +12,9 @@ import { awardForOwnAction } from "./points-service";
  * 呼び出し側（Server Action）で isDemoMode を必ず確かめる。本番ではこの関数に到達させない。
  */
 export async function findDemoAccount(context: ServiceContext, role: UserRole): Promise<UserId> {
-  const members = await context.store.listMembers({ role, page: 1, pageSize: 1 });
-  const first = members.items[0];
+  // 見学用アカウントは「見学する」ボタンからだけ入る。ロール別のデモログインでは選ばない
+  const members = await context.store.listMembers({ role, page: 1, pageSize: 5 });
+  const first = members.items.find((member) => !isGuestUserId(member.userId));
   if (!first) {
     throw invalid(
       role === "admin" ? "運営アカウントがありません。データを初期化してください" : "このロールのデモアカウントがありません。IPPO_SEED=sample で起動すると、サンプルの会員でためせます",
@@ -24,7 +26,7 @@ export async function findDemoAccount(context: ServiceContext, role: UserRole): 
 
 /** 生徒がログインした日のポイント（ログイン・連続・7日ボーナス）。どれも冪等なので、何回ログインしても1日1回分 */
 export async function recordDailyLogin(context: ServiceContext, actor: Actor): Promise<void> {
-  if (actor.role !== "student") return;
+  if (actor.role !== "student" || isGuestUserId(actor.userId)) return;
   const today = toJstDate(context.now());
   await awardForOwnAction(context, actor, { ruleCode: "login_daily", subject: today });
 

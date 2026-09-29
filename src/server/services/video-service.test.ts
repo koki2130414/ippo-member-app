@@ -114,3 +114,26 @@ describe("視聴完了", () => {
     await expect(completeVideo(harness.context, student, { videoId: "video-sample-stretch", viewSessionId })).rejects.toMatchObject({ code: "invalid" });
   });
 });
+
+describe("見学モード（見学用アカウント）", () => {
+  it("動画の一覧と再生はできるが、視聴記録もポイントも作らない", async () => {
+    const harness = createTestContext({ seed: "empty" });
+    const guest = await harness.actorOf(DEMO_IDS.guest);
+    const list = await listVideosForMember(harness.context, guest, { category: undefined, page: 1 });
+    expect(list.access.status).toBe("available");
+    expect(list.page.total).toBe(42);
+
+    const videoId = list.page.items[0]?.id ?? "";
+    expect((await getVideoDetail(harness.context, guest, videoId)).canEarnPoints).toBe(false);
+    const playback = await startPlayback(harness.context, guest, videoId);
+    expect(playback.grant.kind).toBe("youtube");
+    expect(playback.viewSessionId).toBeNull();
+    await expect(completeVideo(harness.context, guest, { videoId, viewSessionId: "any" })).rejects.toMatchObject({ userMessage: expect.stringContaining("見学中") });
+    expect(harness.state.pointTransactions).toHaveLength(0);
+  });
+
+  it("見学用アカウントは運営の画面には入れない（ロールは生徒）", async () => {
+    const harness = createTestContext({ seed: "empty" });
+    expect((await harness.actorOf(DEMO_IDS.guest)).role).toBe("student");
+  });
+});

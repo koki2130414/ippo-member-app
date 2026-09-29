@@ -82,7 +82,8 @@ describe("運営の会員一覧", () => {
   it("本名・メールを含めず、生徒のプランを返す", async () => {
     const harness = createTestContext();
     const page = await listMembersForAdmin(harness.context, await harness.actorOf(DEMO_IDS.admin), { role: "student", page: 1 });
-    expect(page.items.map((row) => row.planCode)).toEqual(["personal", "balance", "light"]);
+    // 先頭は見学用アカウント（ライトプラン）
+    expect(page.items.map((row) => row.planCode)).toEqual(["light", "personal", "balance", "light"]);
     expect(JSON.stringify(page)).not.toMatch(/架空|example\.invalid/);
   });
 
