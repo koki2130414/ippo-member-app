@@ -8,13 +8,21 @@ import { DEMO_IDS } from "./ids";
  */
 export function createEmptySeed(): MockState {
   return {
-    publicProfiles: [{ userId: DEMO_IDS.admin, displayName: "運営", avatarKey: "default", ageBand: "adult", role: "admin" }],
-    privateProfiles: [{ userId: DEMO_IDS.admin, fullName: "運営アカウント", email: "admin@example.invalid", createdAt: SEED_CREATED_AT, deletedAt: null }],
+    publicProfiles: [
+      { userId: DEMO_IDS.admin, displayName: "運営", avatarKey: "default", ageBand: "adult", role: "admin" },
+      // 見学モードの入口（一時的）。子どもの人物データではなく、動画を見るための共用アカウント
+      { userId: DEMO_IDS.guest, displayName: "見学用", avatarKey: "default", ageBand: null, role: "student" },
+    ],
+    privateProfiles: [
+      { userId: DEMO_IDS.admin, fullName: "運営アカウント", email: "admin@example.invalid", createdAt: SEED_CREATED_AT, deletedAt: null },
+      { userId: DEMO_IDS.guest, fullName: "見学用アカウント", email: "guest@example.invalid", createdAt: SEED_CREATED_AT, deletedAt: null },
+    ],
     parentStudentLinks: [],
     coachAssignments: [],
     classEnrollments: [],
     plans: structuredClone(BASE_PLANS),
-    memberships: [],
+    // 見学用はライトプラン（クラス動画・講義・診断だけが見られる）
+    memberships: [{ userId: DEMO_IDS.guest, planCode: "light", startedAt: SEED_CREATED_AT, endedAt: null, assignedBy: DEMO_IDS.admin }],
     pointRules: structuredClone(BASE_POINT_RULES),
     pointTransactions: [],
     exchangeItems: [],

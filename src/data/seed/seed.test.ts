@@ -3,9 +3,10 @@ import { createEmptySeed } from "./empty";
 import { createSampleSeed } from "./sample";
 
 describe("seed", () => {
-  it("empty には運営1人だけ。架空の子どもは入らない", () => {
+  it("empty には運営1人と見学用アカウントだけ。架空の子どもは入らない", () => {
     const state = createEmptySeed();
-    expect(state.publicProfiles.map((profile) => profile.role)).toEqual(["admin"]);
+    expect(state.publicProfiles.map((profile) => [profile.userId, profile.role])).toEqual([["u-admin-0001", "admin"], ["u-guest-0001", "student"]]);
+    expect(state.publicProfiles.find((profile) => profile.role === "student")?.displayName).toBe("見学用");
     expect(state.plans).toHaveLength(5);
     expect(state.classRooms).toHaveLength(4);
     expect(state.diagnosisQuestions.length).toBeGreaterThan(0);
@@ -35,11 +36,11 @@ describe("seed", () => {
 
   it("sample の人物は全員、明らかに架空と分かる名前", () => {
     const state = createSampleSeed();
-    for (const profile of state.privateProfiles.filter((each) => each.userId !== "u-admin-0001")) {
+    for (const profile of state.privateProfiles.filter((each) => each.userId !== "u-admin-0001" && each.userId !== "u-guest-0001")) {
       expect(profile.fullName).toContain("架空");
       expect(profile.email?.endsWith("@example.invalid")).toBe(true);
     }
-    for (const profile of state.publicProfiles.filter((each) => each.role !== "admin")) {
+    for (const profile of state.publicProfiles.filter((each) => each.role !== "admin" && each.userId !== "u-guest-0001")) {
       expect(profile.displayName).toContain("サンプル");
     }
   });
