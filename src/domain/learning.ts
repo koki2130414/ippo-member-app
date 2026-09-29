@@ -57,12 +57,15 @@ export function describeCompletionCheck(check: CompletionCheck, kind: ViewSessio
   if (check.ok) return null;
   const verb = kind === "video" ? "見て" : "読んで";
   if (check.reason === "too_early") {
-    const minutes = Math.floor(check.waitSeconds / 60);
-    const seconds = check.waitSeconds % 60;
-    const wait = minutes > 0 ? `${minutes}分${seconds > 0 ? `${seconds}秒` : ""}` : `${seconds}秒`;
-    return `もう少し${verb}みよう。あと${wait}くらいで「おわった」にできるよ`;
+    return `もう少し${verb}みよう。${describeRemaining(check.waitSeconds)}で「おわった」にできるよ`;
   }
   return kind === "video" ? "さいしょに再生ボタンをおしてから見てみよう" : "ページを開きなおしてから、もう一度ためしてみよう";
+}
+
+/** 「あと48分くらい」「あと30秒くらい」。子どもが読みやすいよう、1分以上は分で出す */
+export function describeRemaining(seconds: number): string {
+  if (seconds >= 60) return `あと${Math.ceil(seconds / 60)}分くらい`;
+  return `あと${Math.max(1, Math.ceil(seconds))}秒くらい`;
 }
 
 export function formatDuration(totalSeconds: number): string {
