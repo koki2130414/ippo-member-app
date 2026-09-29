@@ -9,13 +9,22 @@ const SECRET_MARKERS = ['"storageKey":', '"muxPlaybackId":', "SampleSignedPlayba
 test("カテゴリーのタブは URL で切り替わる", async ({ page }) => {
   await page.goto("/videos");
   await expect(page.getByTestId("video-card").first()).toBeVisible();
-  const allCount = await page.getByTestId("video-card").count();
 
   await page.locator('[data-testid="video-category-tab"][data-tab="mentality"]').click();
   await expect(page).toHaveURL(/\?tab=mentality$/);
   const cards = page.getByTestId("video-card");
-  await expect(cards.first()).toContainText("メンタリティ");
-  expect(await cards.count()).toBeLessThan(allCount);
+  await expect(cards.first()).toBeVisible();
+  // 絞りこんだあとのカードは、すべてメンタリティ
+  const labels = await cards.evaluateAll((elements) => elements.map((element) => element.querySelector("span")?.textContent ?? ""));
+  expect(labels.length).toBeGreaterThan(0);
+  expect(labels.every((label) => label === "メンタリティ")).toBe(true);
+});
+
+test("動画が多いときは「次へ」で次のページに進める", async ({ page }) => {
+  await page.goto("/videos");
+  await page.getByTestId("pagination-next").click();
+  await expect(page).toHaveURL(/\?page=2$/);
+  await expect(page.getByTestId("video-card").first()).toBeVisible();
 });
 
 test("知らないタブ名・壊れたページ番号でも落ちない", async ({ page }) => {
