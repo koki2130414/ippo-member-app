@@ -3,7 +3,7 @@ import { DEMO_IDS } from "@/data/seed/ids";
 import { DELETED_DISPLAY_NAME } from "@/domain/members";
 import { createTestContext } from "../../../test/service-context";
 import { loadActor } from "./actor";
-import { assignPlan, createMember, deleteMember } from "./members-service";
+import { assignPlan, createMember, deleteMember, listMembersForAdmin } from "./members-service";
 import { getPointSummary } from "./points-service";
 
 describe("会員削除", () => {
@@ -75,5 +75,21 @@ describe("会員追加とプラン割り当て", () => {
     expect((await harness.context.store.getActiveMembership(DEMO_IDS.student3))?.planCode).toBe("soccer_iq");
     expect(harness.state.auditLogs.at(-1)?.metadata).toEqual({ from: "light", to: "soccer_iq" });
     await expect(assignPlan(harness.context, admin, { userId: DEMO_IDS.coach, planCode: "light" })).rejects.toMatchObject({ code: "invalid" });
+  });
+});
+
+describe("運営の会員一覧", () => {
+  it("本名・メールを含めず、生徒のプランを返す", async () => {
+    const harness = createTestContext();
+    const page = await listMembersForAdmin(harness.context, await harness.actorOf(DEMO_IDS.admin), { role: "student", page: 1 });
+    expect(page.items.map((row) => row.planCode)).toEqual(["personal", "balance", "light"]);
+    expect(JSON.stringify(page)).not.toMatch(/架空|example\.invalid/);
+  });
+
+  it("運営以外は見られない", async () => {
+    const harness = createTestContext();
+    for (const userId of [DEMO_IDS.student, DEMO_IDS.guardian, DEMO_IDS.coach]) {
+      await expect(listMembersForAdmin(harness.context, await harness.actorOf(userId), { role: undefined, page: 1 })).rejects.toMatchObject({ code: "forbidden" });
+    }
   });
 });

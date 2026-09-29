@@ -1,7 +1,8 @@
 import { anonymizePublicProfile, checkMemberDeletion, describeMemberDeletionCheck, erasePrivateProfile } from "@/domain/members";
 import { findPlan } from "@/domain/plans";
 import type { MemberCreateInput } from "@/domain/schemas";
-import type { Actor, PlanCode, UserId } from "@/domain/types";
+import type { Actor, AgeBand, PlanCode, UserId, UserRole } from "@/domain/types";
+import type { Page } from "@/data/data-store";
 import type { ServiceContext } from "./context";
 import { recordAudit } from "./audit";
 import { conflict, invalid, notFound } from "./errors";
@@ -10,6 +11,31 @@ import { requireAdmin } from "./guards";
 /**
  * 会員管理（運営のみ）。すべての操作を監査ログに残す。
  */
+
+export interface AdminMemberRow {
+  userId: UserId;
+  displayName: string;
+  role: UserRole;
+  ageBand: AgeBand | null;
+  planCode: PlanCode | null;
+}
+
+export const ADMIN_MEMBER_PAGE_SIZE = 20;
+
+/**
+ * 運営の会員一覧。一覧には本名・メールを出さない（必要なときだけ個別の画面で見る。画面をのぞき見されても漏れる量を減らす）。
+ */
+export async function listMembersForAdmin(context: ServiceContext, actor: Actor | null, query: { role: UserRole | undefined; page: number }): Promise<Page<AdminMemberRow>> {
+  requireAdmin(actor, "member.list");
+  const page = await context.store.listMembers({ role: query.role, page: query.page, pageSize: ADMIN_MEMBER_PAGE_SIZE });
+  const items = await Promise.all(
+    page.items.map(async (profile) => {
+      const membership = profile.role === "student" ? await context.store.getActiveMembership(profile.userId) : null;
+      return { userId: profile.userId, displayName: profile.displayName, role: profile.role, ageBand: profile.ageBand, planCode: membership?.planCode ?? null };
+    }),
+  );
+  return { ...page, items };
+}
 
 export async function createMember(context: ServiceContext, actor: Actor | null, input: MemberCreateInput): Promise<{ userId: UserId }> {
   const admin = requireAdmin(actor, "member.create");
