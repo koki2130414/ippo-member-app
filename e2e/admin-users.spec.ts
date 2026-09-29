@@ -50,7 +50,7 @@ test.describe("生徒", () => {
   });
   test("IPPO のクラス動画が一覧にあり、YouTube の注意が出る", async ({ page }) => {
     await page.goto("/videos?tab=soccer_iq");
-    await page.getByTestId("video-card").filter({ hasText: "ゴール前のオフザボールの準備" }).click();
+    await page.getByTestId("video-card").filter({ hasText: "ポジション別②〜（9/27）" }).click();
     await expect(page.getByTestId("video-outside-app-warning")).toBeVisible();
     await page.getByTestId("video-play").click();
     await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/bJDmJon3lRg"]')).toBeVisible();
