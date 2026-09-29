@@ -35,3 +35,17 @@ describe("一覧クエリ", () => {
     expect(listQuerySchema.parse({ page: "2", tab: "mentality" })).toEqual({ page: 2, tab: "mentality" });
   });
 });
+
+describe("会員追加フォーム", () => {
+  it("「なし」の空文字を null に直す", async () => {
+    const { memberCreateFormSchema, toMemberCreateInput } = await import("./schemas");
+    const parsed = memberCreateFormSchema.parse({ displayName: "テスト", fullName: "架空 てすと", email: "t@example.invalid", role: "coach", planCode: "", ageBand: "" });
+    expect(toMemberCreateInput(parsed)).toMatchObject({ planCode: null, ageBand: null });
+  });
+  it("生徒以外にプランを付けようとしたら、どうすればいいかを返す", async () => {
+    const { memberCreateFormSchema } = await import("./schemas");
+    const result = memberCreateFormSchema.safeParse({ displayName: "テスト", fullName: "架空", email: "t@example.invalid", role: "coach", planCode: "light", ageBand: "" });
+    expect(result.success).toBe(false);
+    expect(JSON.stringify(result.error?.issues)).toContain("プランを「なし」にしてください");
+  });
+});

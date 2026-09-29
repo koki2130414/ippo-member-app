@@ -36,6 +36,37 @@ export const memberCreateSchema = z.object({
 });
 export type MemberCreateInput = z.infer<typeof memberCreateSchema>;
 
+/**
+ * 管理画面の「会員を追加」フォーム用。select の「なし」は空文字で届くので、ここで受けてから null に直す。
+ * クライアント（React Hook Form）とサーバー（Server Action）の両方でこのスキーマを使う。
+ */
+export const memberCreateFormSchema = z
+  .object({
+    displayName: displayNameSchema,
+    fullName: trimmed("お名前", 60),
+    email: emailSchema,
+    role: z.enum(USER_ROLES, "ロールを選んでください"),
+    planCode: z.union([z.enum(PLAN_CODES), z.literal("")]),
+    ageBand: z.union([z.enum(AGE_BANDS), z.literal("")]),
+  })
+  .refine((value) => value.role === "student" || value.planCode === "", {
+    message: "プランを割り当てられるのは生徒だけです。プランを「なし」にしてください",
+    path: ["planCode"],
+  });
+export type MemberCreateFormInput = z.input<typeof memberCreateFormSchema>;
+export type MemberCreateFormOutput = z.output<typeof memberCreateFormSchema>;
+
+export function toMemberCreateInput(values: MemberCreateFormOutput): MemberCreateInput {
+  return {
+    displayName: values.displayName,
+    fullName: values.fullName,
+    email: values.email,
+    role: values.role,
+    planCode: values.planCode === "" ? null : values.planCode,
+    ageBand: values.ageBand === "" ? null : values.ageBand,
+  };
+}
+
 export const memberDeleteSchema = z.object({
   userId: z.string().min(1),
   // 誤操作を防ぐため、運営に表示名を打ち直してもらう
