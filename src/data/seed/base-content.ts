@@ -1,7 +1,7 @@
 import { DEFAULT_PLANS } from "@/domain/plans";
 import { DEFAULT_POINT_RULES } from "@/domain/points";
 import type { ClassRoom, Diagnosis, DiagnosisQuestion, LectureCategory, Video } from "@/domain/types";
-import { DEMO_IDS } from "./ids";
+import { IPPO_CLASS_VIDEOS } from "./ippo-videos";
 
 /**
  * どちらの seed にも入る「中身」。人物は1人も含めない。
@@ -54,27 +54,8 @@ export const BASE_CLASS_ROOMS: ClassRoom[] = [
   },
 ];
 
-/**
- * IPPO が実際に配信しているクラス動画（YouTube）。人物のデータではなく教材なので、どちらの seed にも入れる。
- * YouTube 配信なので「アプリの外でも見られる」表示が必ず出る。
- * 運営の判断（2026-09-29）で、限定公開の動画IDを公開リポジトリのコードに置いている。
- * 管理画面から動画を登録できるようになったら（Phase 5）、ここから外してデータとして持つ。
- */
-export const BASE_VIDEOS: Video[] = [
-  {
-    id: "video-ippo-20260927-soccer-iq",
-    title: "ゴール前のオフザボールの準備〜ポジション別②〜",
-    description: "2026年9月27日のサッカーIQクラスの録画です。ボールを持っていないときに、ゴール前でどんな準備をするかを、ポジション別に考えます。",
-    category: "soccer_iq",
-    durationSeconds: 3593,
-    source: "youtube",
-    youtubeId: "bJDmJon3lRg",
-    storageKey: null,
-    muxPlaybackId: null,
-    publishedAt: "2026-09-27T14:42:17.000Z",
-    createdBy: DEMO_IDS.admin,
-  },
-];
+/** IPPO の実際のクラス動画（YouTube）。一覧は ippo-videos.ts */
+export const BASE_VIDEOS: Video[] = IPPO_CLASS_VIDEOS;
 
 export const BASE_LECTURE_CATEGORIES: LectureCategory[] = [
   { id: "lc-basics", name: "サッカーのきほん", sortOrder: 1 },

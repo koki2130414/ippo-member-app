@@ -12,11 +12,21 @@ describe("seed", () => {
     expect(state.lectureCategories.length).toBeGreaterThan(0);
   });
 
-  it("IPPO のクラス動画は empty にも入り、YouTube 配信として扱う", () => {
-    const video = createEmptySeed().videos.find((item) => item.id === "video-ippo-20260927-soccer-iq");
-    expect(video).toMatchObject({ source: "youtube", youtubeId: "bJDmJon3lRg", category: "soccer_iq", durationSeconds: 3593 });
-    expect(video?.storageKey).toBeNull();
-    expect(video?.muxPlaybackId).toBeNull();
+  it("IPPO のクラス動画（42本）は empty にも入り、すべて YouTube 配信として扱う", () => {
+    const videos = createEmptySeed().videos;
+    expect(videos).toHaveLength(42);
+    expect(new Set(videos.map((video) => video.id)).size).toBe(42);
+    expect(new Set(videos.map((video) => video.youtubeId)).size).toBe(42);
+    for (const video of videos) {
+      expect(video.source).toBe("youtube");
+      expect(video.youtubeId).toMatch(/^[A-Za-z0-9_-]{11}$/);
+      expect(video.storageKey).toBeNull();
+      expect(video.muxPlaybackId).toBeNull();
+    }
+    expect(videos.find((video) => video.youtubeId === "bJDmJon3lRg")).toMatchObject({ category: "soccer_iq", durationSeconds: 3593, title: "ゴール前のオフザボールの準備〜ポジション別②〜（9/27）" });
+    // メンタリティ・フィットネスの合同クラスは「メンタリティ」に入り、両方のテーマが説明に書かれる
+    expect(videos.find((video) => video.youtubeId === "6kfjyaymopI")).toMatchObject({ category: "mentality", title: "自信の育て方／ぶれない体の土台づくりをしよう（9/20）" });
+    expect(videos.find((video) => video.youtubeId === "6kfjyaymopI")?.description).toContain("フィットネス「ぶれない体の土台づくりをしよう」");
   });
 
   it("sample は毎回まったく同じ内容になる（自動操作の再現性）", () => {
@@ -27,7 +37,7 @@ describe("seed", () => {
     const state = createSampleSeed();
     for (const profile of state.privateProfiles.filter((each) => each.userId !== "u-admin-0001")) {
       expect(profile.fullName).toContain("架空");
-      expect(profile.email.endsWith("@example.invalid")).toBe(true);
+      expect(profile.email?.endsWith("@example.invalid")).toBe(true);
     }
     for (const profile of state.publicProfiles.filter((each) => each.role !== "admin")) {
       expect(profile.displayName).toContain("サンプル");
