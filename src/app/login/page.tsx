@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ROLE_HOME } from "@/domain/authorization";
 import { USER_ROLES, type UserRole } from "@/domain/types";
-import { resetDemoDataAction } from "@/server/actions/auth-actions";
+import { isGuestUserId } from "@/data/seed/ids";
+import { resetDemoDataAction, startGuestViewingAction } from "@/server/actions/auth-actions";
 import { getCurrentActor, getServiceContext } from "@/server/current-actor";
 import { isDemoMode } from "@/server/env";
 import { safeNextPath } from "@/server/page-guards";
@@ -26,7 +27,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   let availableRoles: UserRole[] = [];
   if (demo) {
     const store = getServiceContext().store;
-    const counts = await Promise.all(USER_ROLES.map(async (role) => ({ role, total: (await store.listMembers({ role, page: 1, pageSize: 1 })).total })));
+    // 見学用アカウントは数えない（ロール別のデモログインでは選ばないため）
+    const counts = await Promise.all(
+      USER_ROLES.map(async (role) => ({ role, total: (await store.listMembers({ role, page: 1, pageSize: 5 })).items.filter((member) => !isGuestUserId(member.userId)).length })),
+    );
     availableRoles = counts.filter((item) => item.total > 0).map((item) => item.role);
   }
 
@@ -39,6 +43,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
       {params.reset === "1" ? <StatusMessage tone="success" testId="demo-reset-done">デモのデータを最初の状態にもどしました</StatusMessage> : null}
       {next ? <StatusMessage tone="info">ログインすると、見ようとしていたページにもどります</StatusMessage> : null}
+
+      {demo ? (
+        <Card className="space-y-3 border-primary" data-testid="guest-panel">
+          <h2 className="font-bold">クラス動画を見学する</h2>
+          <p className="text-sm text-muted-foreground">ログインしないで、IPPO のクラス動画を見られます。</p>
+          <form action={startGuestViewingAction}>
+            <Button type="submit" size="lg" className="w-full" data-testid="guest-view">見学する</Button>
+          </form>
+          <p className="text-xs text-destructive">いまは準備中のため、このページを知っている人ならだれでも見学できます。</p>
+        </Card>
+      ) : null}
 
       {demo ? (
         <Card className="space-y-4">
