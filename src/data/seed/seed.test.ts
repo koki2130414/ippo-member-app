@@ -12,6 +12,13 @@ describe("seed", () => {
     expect(state.lectureCategories.length).toBeGreaterThan(0);
   });
 
+  it("IPPO のクラス動画は empty にも入り、YouTube 配信として扱う", () => {
+    const video = createEmptySeed().videos.find((item) => item.id === "video-ippo-20260927-soccer-iq");
+    expect(video).toMatchObject({ source: "youtube", youtubeId: "bJDmJon3lRg", category: "soccer_iq", durationSeconds: 3593 });
+    expect(video?.storageKey).toBeNull();
+    expect(video?.muxPlaybackId).toBeNull();
+  });
+
   it("sample は毎回まったく同じ内容になる（自動操作の再現性）", () => {
     expect(createSampleSeed()).toEqual(createSampleSeed());
   });

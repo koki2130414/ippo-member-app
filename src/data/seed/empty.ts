@@ -1,5 +1,5 @@
 import type { MockState } from "../mock/mock-state";
-import { BASE_CLASS_ROOMS, BASE_DIAGNOSIS, BASE_DIAGNOSIS_QUESTIONS, BASE_LECTURE_CATEGORIES, BASE_PLANS, BASE_POINT_RULES, SEED_CREATED_AT } from "./base-content";
+import { BASE_CLASS_ROOMS, BASE_DIAGNOSIS, BASE_VIDEOS, BASE_DIAGNOSIS_QUESTIONS, BASE_LECTURE_CATEGORIES, BASE_PLANS, BASE_POINT_RULES, SEED_CREATED_AT } from "./base-content";
 import { DEMO_IDS } from "./ids";
 
 /**
@@ -19,7 +19,7 @@ export function createEmptySeed(): MockState {
     pointTransactions: [],
     exchangeItems: [],
     auditLogs: [],
-    videos: [],
+    videos: structuredClone(BASE_VIDEOS),
     classRooms: structuredClone(BASE_CLASS_ROOMS),
     lectureCategories: structuredClone(BASE_LECTURE_CATEGORIES),
     lectures: [],
