@@ -10,11 +10,13 @@ import { rolesAllowedForPath } from "@/domain/authorization";
  * 本当の判定は画面側の requirePageActor とサービス層で行う。
  */
 const SESSION_COOKIE_NAME = "ippo_session";
+/** 見学モードの印（server/guest.ts）。ここでは有無だけを見る。本当に使えるかは画面側で判定する */
+const GUEST_COOKIE_NAME = "ippo_guest";
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   if (rolesAllowedForPath(pathname) === "public") return NextResponse.next();
-  if (request.cookies.has(SESSION_COOKIE_NAME)) return NextResponse.next();
+  if (request.cookies.has(SESSION_COOKIE_NAME) || request.cookies.has(GUEST_COOKIE_NAME)) return NextResponse.next();
 
   const loginUrl = new URL("/login", request.url);
   loginUrl.searchParams.set("next", `${pathname}${search}`);
