@@ -8,6 +8,7 @@ import { ROLE_HOME, rolesAllowedForPath } from "@/domain/authorization";
 import { USER_ROLES } from "@/domain/types";
 import { getServiceContext } from "../current-actor";
 import { isDemoMode } from "../env";
+import { GUEST_COOKIE_NAME, isGuestModeAvailable } from "../guest";
 import { safeNextPath } from "../page-guards";
 import { loadActor } from "../services/actor";
 import { findDemoAccount, recordDailyLogin } from "../services/auth-service";
@@ -39,6 +40,7 @@ export async function demoSignInAction(_previous: DemoSignInState, formData: For
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
+    cookieStore.delete(GUEST_COOKIE_NAME);
     await recordDailyLogin(context, actor);
 
     // 戻り先がそのロールで入れる画面なら戻す。入れない画面なら、ロールのホームへ
@@ -53,9 +55,25 @@ export async function demoSignInAction(_previous: DemoSignInState, formData: For
   redirect(destination);
 }
 
+/** 見学モードに入る。デモモードのときだけ。クラス動画の一覧へ */
+export async function startGuestViewingAction(): Promise<void> {
+  if (!isGuestModeAvailable()) redirect("/login");
+  const cookieStore = await cookies();
+  cookieStore.set(GUEST_COOKIE_NAME, "1", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    // 見学は一時的なもの。1日で自動的に終わる
+    maxAge: 24 * 60 * 60,
+  });
+  redirect("/videos");
+}
+
 export async function signOutAction(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(GUEST_COOKIE_NAME);
   redirect("/login");
 }
 
@@ -65,5 +83,6 @@ export async function resetDemoDataAction(): Promise<void> {
   resetDemoData();
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(GUEST_COOKIE_NAME);
   redirect("/login?reset=1");
 }
