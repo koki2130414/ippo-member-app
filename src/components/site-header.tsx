@@ -15,7 +15,10 @@ const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: strin
     { href: "/lectures", label: "講義", testId: "nav-lectures" },
   ],
   coach: [{ href: "/coach", label: "コーチのホーム", testId: "nav-home" }],
-  admin: [{ href: "/admin", label: "運営のホーム", testId: "nav-home" }],
+  admin: [
+    { href: "/admin", label: "運営のホーム", testId: "nav-home" },
+    { href: "/admin/users?tab=members", label: "会員", testId: "nav-admin-users" },
+  ],
 };
 
 const ROLE_LABEL: Record<UserRole, string> = { student: "生徒", guardian: "保護者", coach: "コーチ", admin: "運営" };
