@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { AGE_BANDS, ATTENDANCE_STATUSES, PLAN_CODES, USER_ROLES, VIDEO_CATEGORIES } from "./types";
+import { PASSWORD_MIN_LENGTH } from "./registration";
+import { AGE_BANDS, ATTENDANCE_STATUSES, GRADES, PLAN_CODES, PREFECTURES, USER_ROLES, VIDEO_CATEGORIES } from "./types";
 
 /**
  * 入力スキーマ。クライアントのフォーム（React Hook Form）とサーバーの Server Action で同じものを使う。
@@ -20,10 +21,77 @@ export const displayNameSchema = trimmed("表示名", 20).refine((value) => !/[<
 
 export const emailSchema = z.string().trim().toLowerCase().pipe(z.email("メールアドレスの形をたしかめてください"));
 
+/** ログイン。保護者・運営はメールアドレス、生徒は ippo- から始まる ID */
 export const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, "パスワードを入力してください"),
+  loginId: z.string().trim().min(1, "メールアドレスかログインIDを入力してください").max(254),
+  password: z.string().min(1, "パスワードを入力してください").max(200),
 });
+
+const passwordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, `パスワードは${PASSWORD_MIN_LENGTH}文字以上にしてください`)
+  .max(200, "パスワードが長すぎます。200文字までにしてください");
+
+/** 入会の申し込み（保護者が入力する）。フォームとサーバーで同じものを使う */
+export const registrationApplicationSchema = z.object({
+  guardianEmail: emailSchema,
+  childFullName: trimmed("お子さまのお名前", 60),
+  childDisplayName: displayNameSchema,
+  grade: z.enum(GRADES, "学年を選んでください"),
+  prefecture: z.enum(PREFECTURES, "出身地（都道府県）を選んでください"),
+  consent: z.literal(true, "内容をお読みのうえ、同意のチェックを入れてください"),
+  /** ボット対策の見えない欄。人は入力しない。値が入っていたら受け付けない */
+  website: z.string().max(0, "送信できませんでした。ページを開きなおしてください").optional(),
+});
+export type RegistrationApplicationInput = z.input<typeof registrationApplicationSchema>;
+export type RegistrationApplicationOutput = z.output<typeof registrationApplicationSchema>;
+
+export const approveApplicationSchema = z.object({
+  applicationId: z.string().min(1),
+  planCode: z.enum(PLAN_CODES, "プランを選んでください").nullable(),
+});
+
+export const rejectApplicationSchema = z.object({
+  applicationId: z.string().min(1),
+  note: z.string().trim().max(500, "メモは500文字までにしてください").optional(),
+});
+
+/** 招待リンクを開いた保護者が、自分とお子さまのパスワードを決める */
+export const invitationAcceptSchema = z
+  .object({
+    token: z.string().min(20).max(200),
+    guardianPassword: passwordSchema,
+    guardianPasswordConfirm: z.string(),
+    studentPassword: passwordSchema,
+    studentPasswordConfirm: z.string(),
+  })
+  .refine((value) => value.guardianPassword === value.guardianPasswordConfirm, { message: "確認用のパスワードが一致しません", path: ["guardianPasswordConfirm"] })
+  .refine((value) => value.studentPassword === value.studentPasswordConfirm, { message: "確認用のパスワードが一致しません", path: ["studentPasswordConfirm"] })
+  .refine((value) => value.guardianPassword !== value.studentPassword, { message: "保護者とお子さまで、ちがうパスワードにしてください", path: ["studentPassword"] });
+export type InvitationAcceptInput = z.input<typeof invitationAcceptSchema>;
+
+/** 1人分のパスワードを決める（運営が用意したログイン、パスワードの再設定） */
+export const accountSetupSchema = z
+  .object({
+    token: z.string().min(20).max(200),
+    password: passwordSchema,
+    passwordConfirm: z.string(),
+  })
+  .refine((value) => value.password === value.passwordConfirm, { message: "確認用のパスワードが一致しません", path: ["passwordConfirm"] });
+export type AccountSetupInput = z.input<typeof accountSetupSchema>;
+
+export const issueInvitationSchema = z.object({ userId: z.string().min(1) });
+
+/** 最初の運営アカウントを作る（運営が1人もいないときだけ使える） */
+export const setupAdminSchema = z
+  .object({
+    displayName: displayNameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+    passwordConfirm: z.string(),
+  })
+  .refine((value) => value.password === value.passwordConfirm, { message: "確認用のパスワードが一致しません", path: ["passwordConfirm"] });
+export type SetupAdminInput = z.input<typeof setupAdminSchema>;
 
 export const memberCreateSchema = z.object({
   displayName: displayNameSchema,

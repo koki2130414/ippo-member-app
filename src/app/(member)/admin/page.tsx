@@ -11,9 +11,15 @@ export default async function AdminHomePage() {
       <h1 className="text-2xl font-bold">運営のホーム</h1>
       <ul className="grid gap-3 sm:grid-cols-2">
         <li>
+          <Link href="/admin/applications" data-testid="admin-go-applications" className="block rounded-lg border border-border p-4 hover:bg-muted">
+            <p className="font-semibold">入会の申し込み</p>
+            <p className="text-sm text-muted-foreground">承認・見送りと、ログイン用リンクの発行</p>
+          </Link>
+        </li>
+        <li>
           <Link href="/admin/users?tab=members" data-testid="admin-go-users" className="block rounded-lg border border-border p-4 hover:bg-muted">
             <p className="font-semibold">会員の管理</p>
-            <p className="text-sm text-muted-foreground">会員の追加・プランの割り当て</p>
+            <p className="text-sm text-muted-foreground">会員の追加・プランの割り当て・ログイン用リンク</p>
           </Link>
         </li>
       </ul>

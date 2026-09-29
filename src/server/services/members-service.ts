@@ -18,6 +18,8 @@ export interface AdminMemberRow {
   role: UserRole;
   ageBand: AgeBand | null;
   planCode: PlanCode | null;
+  /** パスワードが設定済みか（ログインできる状態か） */
+  hasLogin: boolean;
 }
 
 export const ADMIN_MEMBER_PAGE_SIZE = 20;
@@ -30,8 +32,11 @@ export async function listMembersForAdmin(context: ServiceContext, actor: Actor 
   const page = await context.store.listMembers({ role: query.role, page: query.page, pageSize: ADMIN_MEMBER_PAGE_SIZE });
   const items = await Promise.all(
     page.items.map(async (profile) => {
-      const membership = profile.role === "student" ? await context.store.getActiveMembership(profile.userId) : null;
-      return { userId: profile.userId, displayName: profile.displayName, role: profile.role, ageBand: profile.ageBand, planCode: membership?.planCode ?? null };
+      const [membership, credential] = await Promise.all([
+        profile.role === "student" ? context.store.getActiveMembership(profile.userId) : Promise.resolve(null),
+        context.store.getCredentialByUserId(profile.userId),
+      ]);
+      return { userId: profile.userId, displayName: profile.displayName, role: profile.role, ageBand: profile.ageBand, planCode: membership?.planCode ?? null, hasLogin: credential !== null };
     }),
   );
   return { ...page, items };
@@ -46,7 +51,7 @@ export async function createMember(context: ServiceContext, actor: Actor | null,
   const now = context.now();
   const result = await context.store.createMember({
     publicProfile: { userId, displayName: input.displayName, avatarKey: "default", ageBand: input.ageBand, role: input.role },
-    privateProfile: { userId, fullName: input.fullName, email: input.email, createdAt: now.toISOString(), deletedAt: null },
+    privateProfile: { userId, fullName: input.fullName, email: input.email, grade: null, prefecture: null, createdAt: now.toISOString(), deletedAt: null },
   });
   if (result.outcome === "email_taken") {
     throw conflict("このメールアドレスはすでに使われています。別のメールアドレスにするか、既存の会員を確認してください");

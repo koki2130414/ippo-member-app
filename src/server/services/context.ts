@@ -21,6 +21,7 @@ export function createServiceContext(store: DataStore): ServiceContext {
     store,
     now: () => new Date(),
     newId: () => crypto.randomUUID(),
-    media: { storageAvailable: store.kind === "supabase", muxSigningKey: readMuxSigningKey() },
+    // Supabase Storage への動画アップロードと署名URLはまだ作っていない（今の動画はすべて YouTube）。作るまでは false
+    media: { storageAvailable: false, muxSigningKey: readMuxSigningKey() },
   };
 }

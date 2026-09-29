@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DemoLoginPanel } from "@/components/demo-login-panel";
+import { PasswordLoginForm } from "@/components/password-login-form";
 import { StatusMessage } from "@/components/status-message";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,6 +45,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       {params.reset === "1" ? <StatusMessage tone="success" testId="demo-reset-done">デモのデータを最初の状態にもどしました</StatusMessage> : null}
       {next ? <StatusMessage tone="info">ログインすると、見ようとしていたページにもどります</StatusMessage> : null}
 
+      <Card className="space-y-4" data-testid="login-panel">
+        <PasswordLoginForm next={next} />
+        <p className="text-sm text-muted-foreground">
+          はじめての方は、運営から届いたリンクからパスワードを決めてください。入会がまだの方は
+          <Link href="/register" className="font-semibold text-primary underline" data-testid="login-go-register">入会の申し込み</Link>
+          へ。
+        </p>
+      </Card>
+
       {demo ? (
         <Card className="space-y-3 border-primary" data-testid="guest-panel">
           <h2 className="font-bold">クラス動画を見学する</h2>
@@ -69,11 +79,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <Button type="submit" variant="ghost" size="sm" data-testid="demo-reset">デモのデータを最初の状態にもどす</Button>
           </form>
         </Card>
-      ) : (
-        <Card>
-          <p className="text-sm">メールアドレスでのログインは準備中です。運営からの案内をお待ちください。</p>
-        </Card>
-      )}
+      ) : null}
     </main>
   );
 }

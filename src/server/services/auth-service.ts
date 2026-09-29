@@ -1,9 +1,12 @@
 import { isGuestUserId } from "@/data/seed/ids";
 import { toJstDate } from "@/domain/jst";
+import { normalizeLoginId } from "@/domain/registration";
 import { computeStreak, isStreakBonusDay } from "@/domain/points";
 import type { Actor, UserId, UserRole } from "@/domain/types";
 import type { ServiceContext } from "./context";
-import { invalid } from "./errors";
+import { invalid, ServiceError } from "./errors";
+import { burnPasswordCheck, verifyPassword } from "./secrets";
+import { startSession } from "./session-service";
 import { awardForOwnAction } from "./points-service";
 
 /**
@@ -35,4 +38,25 @@ export async function recordDailyLogin(context: ServiceContext, actor: Actor): P
   const streak = computeStreak(loginDates, today);
   if (streak.currentDays >= 2) await awardForOwnAction(context, actor, { ruleCode: "streak_daily", subject: today });
   if (isStreakBonusDay(streak)) await awardForOwnAction(context, actor, { ruleCode: "streak_bonus_7", subject: today });
+}
+
+const SIGN_IN_FAILED = "メールアドレス（ログインID）かパスワードがちがいます。もう一度たしかめてください";
+
+/**
+ * パスワードでログインする。成功したらセッションのトークンを返す（クッキーに入れるのは Server Action 側）。
+ * 「IDがちがう」と「パスワードがちがう」を言い分けない（どのIDが存在するかを教えないため）。
+ */
+export async function signInWithPassword(context: ServiceContext, input: { loginId: string; password: string }): Promise<{ userId: UserId; token: string; expiresAt: Date }> {
+  const credential = await context.store.getCredentialByLoginId(normalizeLoginId(input.loginId));
+  if (!credential) {
+    await burnPasswordCheck(input.password);
+    throw new ServiceError("unauthenticated", SIGN_IN_FAILED, "sign_in:unknown_login_id");
+  }
+  if (!(await verifyPassword(input.password, credential.passwordHash))) {
+    throw new ServiceError("unauthenticated", SIGN_IN_FAILED, "sign_in:wrong_password");
+  }
+  const privateProfile = await context.store.getPrivateProfile(credential.userId);
+  if (!privateProfile || privateProfile.deletedAt !== null) throw new ServiceError("unauthenticated", SIGN_IN_FAILED, "sign_in:deleted");
+  const session = await startSession(context, credential.userId);
+  return { userId: credential.userId, ...session };
 }

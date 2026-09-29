@@ -1,5 +1,5 @@
 import { decideExchange, sumBalance } from "@/domain/points";
-import type { AuditLog, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
+import type { ApplicationStatus, AuditLog, Credential, Invitation, ParentStudentLink, RegistrationApplication, Session, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
 import type { AppendPointResult, DataStore, ExchangeResult, NewMember, Page, PageQuery } from "../data-store";
 import type { MockState } from "./mock-state";
 
@@ -15,6 +15,103 @@ export class MockDataStore implements DataStore {
   readonly kind = "mock" as const;
 
   constructor(private readonly state: MockState) {}
+
+  /**
+   * デモでは、途中で失敗したら状態を丸ごと元に戻すことで「全部か無か」にする。
+   * （同時に別の操作が走ると、その変更も巻き戻る。デモ用なので割り切っている）
+   */
+  async transaction<T>(work: (store: MockDataStore) => Promise<T>): Promise<T> {
+    const snapshot = structuredClone(this.state);
+    try {
+      return await work(this);
+    } catch (error) {
+      for (const key of Object.keys(snapshot)) Reflect.set(this.state, key, Reflect.get(snapshot, key));
+      throw error;
+    }
+  }
+
+  async createParentStudentLink(link: ParentStudentLink) {
+    const exists = this.state.parentStudentLinks.some((item) => item.guardianId === link.guardianId && item.studentId === link.studentId);
+    if (!exists) this.state.parentStudentLinks.push(structuredClone(link));
+  }
+
+  // --- 入会の申し込み ---
+
+  async createApplication(application: RegistrationApplication) {
+    this.state.applications.push(structuredClone(application));
+  }
+
+  async getApplication(applicationId: string) {
+    return copyOrNull(this.state.applications.find((application) => application.id === applicationId));
+  }
+
+  async listApplications(query: PageQuery & { status: ApplicationStatus }) {
+    // 未対応は古い順（待たせている順）、対応済みは新しい順
+    const filtered = this.state.applications
+      .filter((application) => application.status === query.status)
+      .sort((a, b) => (query.status === "pending" ? a.createdAt.localeCompare(b.createdAt) : (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? "")));
+    return paginate(filtered, query);
+  }
+
+  async countPendingApplicationsByEmail(email: string) {
+    return this.state.applications.filter((application) => application.status === "pending" && application.guardianEmail === email).length;
+  }
+
+  async completeReview(application: RegistrationApplication) {
+    const current = this.state.applications.find((item) => item.id === application.id);
+    if (!current || current.status !== "pending") return false;
+    replaceWhere(this.state.applications, (item) => item.id === application.id, structuredClone(application));
+    return true;
+  }
+
+  // --- 招待とログイン ---
+
+  async createInvitation(invitation: Invitation) {
+    this.state.invitations.push(structuredClone(invitation));
+  }
+
+  async findInvitationByTokenHash(tokenHash: string) {
+    return copyOrNull(this.state.invitations.find((invitation) => invitation.tokenHash === tokenHash));
+  }
+
+  async markInvitationUsed(invitationId: string, usedAt: string) {
+    const invitation = this.state.invitations.find((item) => item.id === invitationId);
+    if (!invitation || invitation.usedAt !== null) return false;
+    invitation.usedAt = usedAt;
+    return true;
+  }
+
+  async getCredentialByLoginId(loginId: string) {
+    return copyOrNull(this.state.credentials.find((credential) => credential.loginId === loginId));
+  }
+
+  async getCredentialByUserId(userId: UserId) {
+    return copyOrNull(this.state.credentials.find((credential) => credential.userId === userId));
+  }
+
+  async saveCredential(credential: Credential) {
+    const takenByOther = this.state.credentials.some((item) => item.loginId === credential.loginId && item.userId !== credential.userId);
+    if (takenByOther) return { outcome: "login_id_taken" as const };
+    this.state.credentials = this.state.credentials.filter((item) => item.userId !== credential.userId);
+    this.state.credentials.push(structuredClone(credential));
+    return { outcome: "saved" as const };
+  }
+
+  async createSession(session: Session) {
+    this.state.sessions.push(structuredClone(session));
+  }
+
+  async findSession(tokenHash: string, now: Date) {
+    return copyOrNull(this.state.sessions.find((session) => session.tokenHash === tokenHash && new Date(session.expiresAt).getTime() > now.getTime()));
+  }
+
+  async deleteSession(tokenHash: string) {
+    this.state.sessions = this.state.sessions.filter((session) => session.tokenHash !== tokenHash);
+  }
+
+  async deleteSessionsForUser(userId: UserId) {
+    this.state.sessions = this.state.sessions.filter((session) => session.userId !== userId);
+  }
 
   // --- 会員 ---
 
@@ -40,7 +137,7 @@ export class MockDataStore implements DataStore {
   }
 
   async createMember(member: NewMember) {
-    const emailTaken = this.state.privateProfiles.some((profile) => profile.email === member.privateProfile.email && profile.deletedAt === null);
+    const emailTaken = member.privateProfile.email !== null && this.state.privateProfiles.some((profile) => profile.email === member.privateProfile.email && profile.deletedAt === null);
     if (emailTaken) return { outcome: "email_taken" as const };
     this.state.publicProfiles.push(structuredClone(member.publicProfile));
     this.state.privateProfiles.push(structuredClone(member.privateProfile));
@@ -55,6 +152,9 @@ export class MockDataStore implements DataStore {
     this.state.parentStudentLinks = this.state.parentStudentLinks.filter((link) => link.guardianId !== userId && link.studentId !== userId);
     this.state.coachAssignments = this.state.coachAssignments.filter((assignment) => assignment.coachId !== userId && assignment.studentId !== userId);
     this.state.classEnrollments = this.state.classEnrollments.filter((enrollment) => enrollment.studentId !== userId);
+    // ログインできないようにする（パスワードとログイン中のセッションを消す）
+    this.state.credentials = this.state.credentials.filter((credential) => credential.userId !== userId);
+    this.state.sessions = this.state.sessions.filter((session) => session.userId !== userId);
     for (const classRoom of this.state.classRooms) classRoom.coachIds = classRoom.coachIds.filter((coachId) => coachId !== userId);
     const now = input.privateProfile.deletedAt;
     for (const membership of this.state.memberships) {
@@ -170,9 +270,10 @@ export class MockDataStore implements DataStore {
   }
 
   async listVideos(query: PageQuery & { category?: VideoCategory; publishedOnly: boolean }) {
-    const filtered = this.state.videos.filter(
-      (video) => (query.category === undefined || video.category === query.category) && (!query.publishedOnly || video.publishedAt !== null),
-    );
+    const filtered = this.state.videos
+      .filter((video) => (query.category === undefined || video.category === query.category) && (!query.publishedOnly || video.publishedAt !== null))
+      // 新しいクラスから並べる（公開日の無い下書きは最後）
+      .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
     return paginate(filtered, query);
   }
 

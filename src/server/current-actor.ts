@@ -7,7 +7,8 @@ import { GUEST_COOKIE_NAME, isGuestModeAvailable } from "./guest";
 import type { Actor } from "@/domain/types";
 import { loadActor } from "./services/actor";
 import { createServiceContext, type ServiceContext } from "./services/context";
-import { SESSION_COOKIE_NAME, verifySessionToken } from "./session";
+import { SESSION_COOKIE_NAME } from "./session";
+import { resolveSession } from "./services/session-service";
 
 /**
  * 1リクエストの中では同じ Actor を使い回す（React の cache）。
@@ -15,14 +16,15 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "./session";
  */
 export const getCurrentActor = cache(async (): Promise<Actor | null> => {
   const cookieStore = await cookies();
-  const userId = verifySessionToken(cookieStore.get(SESSION_COOKIE_NAME)?.value, new Date());
+  const context = getServiceContext();
+  const userId = await resolveSession(context, cookieStore.get(SESSION_COOKIE_NAME)?.value);
   if (userId) {
-    const actor = await loadActor(getServiceContext(), userId);
+    const actor = await loadActor(context, userId);
     if (actor) return actor;
   }
   // 見学モード: デモモードのときだけ、見学中の印があれば見学用アカウントとして扱う（server/guest.ts）
   if (isGuestModeAvailable() && cookieStore.get(GUEST_COOKIE_NAME)?.value === "1") {
-    return loadActor(getServiceContext(), DEMO_IDS.guest);
+    return loadActor(context, DEMO_IDS.guest);
   }
   return null;
 });

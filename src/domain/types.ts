@@ -49,7 +49,11 @@ export interface PublicProfile {
 export interface PrivateProfile {
   userId: UserId;
   fullName: string;
-  email: string;
+  /** 連絡先。生徒は自分のメールを持たないことが多いので null を許す（保護者のメールで連絡する） */
+  email: string | null;
+  /** 申込時の学年と都道府県（生徒のみ）。学年は4月に変わるので、申込時点の値として持つ */
+  grade: Grade | null;
+  prefecture: Prefecture | null;
   createdAt: IsoDateTime;
   /** 退会済みなら日時が入る。行そのものは監査のために残し、個人情報だけを消す */
   deletedAt: IsoDateTime | null;
@@ -68,14 +72,91 @@ export interface CoachAssignment {
   createdAt: IsoDateTime;
 }
 
+/**
+ * 招待（初回のパスワード設定用の使い切りリンク）。
+ * リンクのトークンそのものは保存せず、ハッシュだけを持つ（DB が漏れても招待リンクを作り直せないように）。
+ */
 export interface Invitation {
-  code: string;
-  role: UserRole;
-  /** 保護者招待のときだけ、紐づけ先の生徒を持つ */
-  studentId: UserId | null;
+  id: string;
+  tokenHash: string;
+  /**
+   * family_setup: 申し込みを承認したときに保護者へ送る（保護者と子どもの両方のパスワードを決める）
+   * account_setup: 運営が1人分のログインを用意するとき（パスワードの再設定にも使う）
+   */
+  purpose: "family_setup" | "account_setup";
+  guardianUserId: UserId | null;
+  studentUserId: UserId | null;
+  /** account_setup のときの対象（生徒以外も含む） */
+  accountUserId: UserId | null;
   expiresAt: IsoDateTime;
   usedAt: IsoDateTime | null;
   createdBy: UserId;
+  createdAt: IsoDateTime;
+}
+
+// ---------------------------------------------------------------------------
+// 入会の申し込み
+// ---------------------------------------------------------------------------
+
+export const GRADES = ["e1", "e2", "e3", "e4", "e5", "e6", "j1", "j2", "j3"] as const;
+export type Grade = (typeof GRADES)[number];
+
+export const PREFECTURES = [
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県",
+  "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+  "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "徳島県", "香川県", "愛媛県", "高知県",
+  "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+  "海外",
+] as const;
+export type Prefecture = (typeof PREFECTURES)[number];
+
+export const APPLICATION_STATUSES = ["pending", "approved", "rejected"] as const;
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
+
+/**
+ * 保護者からの入会申し込み。集めるのは運営が決めた4項目（名前・学年・出身地・メールアドレス）と、
+ * アプリで表示するニックネーム（本名を他の会員に見せないため）だけ。
+ */
+export interface RegistrationApplication {
+  id: string;
+  status: ApplicationStatus;
+  guardianEmail: string;
+  childFullName: string;
+  childDisplayName: string;
+  grade: Grade;
+  prefecture: Prefecture;
+  /** 同意した規約・プライバシーポリシーの版 */
+  consentVersion: string;
+  createdAt: IsoDateTime;
+  reviewedAt: IsoDateTime | null;
+  reviewedBy: UserId | null;
+  /** 運営だけが見るメモ（却下の理由など）。申込者には表示しない */
+  reviewNote: string | null;
+  studentUserId: UserId | null;
+  guardianUserId: UserId | null;
+}
+
+// ---------------------------------------------------------------------------
+// ログイン
+// ---------------------------------------------------------------------------
+
+/** ログインIDとパスワードのハッシュ。保護者・コーチ・運営のログインIDはメールアドレス、生徒は発行したID */
+export interface Credential {
+  userId: UserId;
+  loginId: string;
+  passwordHash: string;
+  updatedAt: IsoDateTime;
+}
+
+/** ログイン中のセッション。クッキーにはランダムなトークンを入れ、ここにはハッシュだけを持つ */
+export interface Session {
+  tokenHash: string;
+  userId: UserId;
+  createdAt: IsoDateTime;
+  expiresAt: IsoDateTime;
 }
 
 export interface TermsAcceptance {
@@ -500,6 +581,11 @@ export interface AppNotification {
 
 export const AUDIT_ACTIONS = [
   "member.create",
+  "application.approve",
+  "application.reject",
+  "invitation.accept",
+  "invitation.issue",
+  "admin.setup",
   "member.delete",
   "member.plan_assign",
   "link.create",

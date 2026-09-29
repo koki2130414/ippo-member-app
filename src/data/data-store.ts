@@ -1,5 +1,11 @@
 import type {
+  ApplicationStatus,
   AuditLog,
+  Credential,
+  Invitation,
+  ParentStudentLink,
+  RegistrationApplication,
+  Session,
   ClassRoom,
   Diagnosis,
   DiagnosisQuestion,
@@ -62,6 +68,12 @@ export interface NewMember {
 export interface DataStore {
   readonly kind: "mock" | "supabase";
 
+  /**
+   * いくつかの書き込みを「全部やるか、何もしないか」にする。
+   * 承認（生徒・保護者・紐付け・プラン・招待をまとめて作る）の途中で失敗して、半端なアカウントが残らないように。
+   */
+  transaction<T>(work: (store: DataStore) => Promise<T>): Promise<T>;
+
   // --- 会員 ---
   getPublicProfile(userId: UserId): Promise<PublicProfile | null>;
   getPrivateProfile(userId: UserId): Promise<PrivateProfile | null>;
@@ -71,6 +83,33 @@ export interface DataStore {
   /** 退会処理。公開・非公開プロフィールの置き換えと、紐付け類の削除を1回で行う */
   applyMemberDeletion(input: { publicProfile: PublicProfile; privateProfile: PrivateProfile }): Promise<void>;
   countActiveAdmins(): Promise<number>;
+
+  createParentStudentLink(link: ParentStudentLink): Promise<void>;
+
+  // --- 入会の申し込み ---
+  createApplication(application: RegistrationApplication): Promise<void>;
+  getApplication(applicationId: string): Promise<RegistrationApplication | null>;
+  listApplications(query: PageQuery & { status: ApplicationStatus }): Promise<Page<RegistrationApplication>>;
+  countPendingApplicationsByEmail(email: string): Promise<number>;
+  /**
+   * 審査結果を書く。status が pending のときだけ書き換える（2人の運営が同時に押しても、二重に承認されない）。
+   * 書き換えられたら true
+   */
+  completeReview(application: RegistrationApplication): Promise<boolean>;
+
+  // --- 招待とログイン ---
+  createInvitation(invitation: Invitation): Promise<void>;
+  findInvitationByTokenHash(tokenHash: string): Promise<Invitation | null>;
+  /** まだ使われていないときだけ使用済みにする。できたら true */
+  markInvitationUsed(invitationId: string, usedAt: string): Promise<boolean>;
+  getCredentialByLoginId(loginId: string): Promise<Credential | null>;
+  getCredentialByUserId(userId: UserId): Promise<Credential | null>;
+  saveCredential(credential: Credential): Promise<{ outcome: "saved" } | { outcome: "login_id_taken" }>;
+  createSession(session: Session): Promise<void>;
+  /** 有効期限内のセッションだけを返す */
+  findSession(tokenHash: string, now: Date): Promise<Session | null>;
+  deleteSession(tokenHash: string): Promise<void>;
+  deleteSessionsForUser(userId: UserId): Promise<void>;
 
   // --- 関係（認可の材料） ---
   listLinkedStudentIds(guardianId: UserId): Promise<UserId[]>;

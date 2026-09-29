@@ -17,7 +17,7 @@ type Person = { publicProfile: PublicProfile; privateProfile: PrivateProfile };
 function person(userId: string, role: PublicProfile["role"], displayName: string, fullName: string, ageBand: PublicProfile["ageBand"], avatarKey: string): Person {
   return {
     publicProfile: { userId, displayName, avatarKey, ageBand, role },
-    privateProfile: { userId, fullName, email: `${userId}@example.invalid`, createdAt: SEED_CREATED_AT, deletedAt: null },
+    privateProfile: { userId, fullName, email: `${userId}@example.invalid`, grade: null, prefecture: null, createdAt: SEED_CREATED_AT, deletedAt: null },
   };
 }
 

@@ -17,6 +17,7 @@ const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: strin
   coach: [{ href: "/coach", label: "コーチのホーム", testId: "nav-home" }],
   admin: [
     { href: "/admin", label: "運営のホーム", testId: "nav-home" },
+    { href: "/admin/applications", label: "申し込み", testId: "nav-admin-applications" },
     { href: "/admin/users?tab=members", label: "会員", testId: "nav-admin-users" },
   ],
 };

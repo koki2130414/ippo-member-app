@@ -52,8 +52,9 @@ export function erasePrivateProfile(profile: PrivateProfile, now: Date): Private
   return {
     userId: profile.userId,
     fullName: "",
-    // メールはユニーク制約があるので空にせず、届かないドメイン（RFC 2606 の .invalid）に置き換える
-    email: `deleted+${profile.userId}@example.invalid`,
+    email: null,
+    grade: null,
+    prefecture: null,
     createdAt: profile.createdAt,
     deletedAt: now.toISOString(),
   };

@@ -20,11 +20,12 @@ describe("会員削除の事前チェック", () => {
 });
 
 describe("個人情報の消去", () => {
-  it("本名・メールを消し、削除日時を入れる", () => {
-    const erased = erasePrivateProfile({ userId: "s1", fullName: "本名", email: "a@example.com", createdAt: "2026-01-01T00:00:00Z", deletedAt: null }, new Date("2026-09-24T00:00:00Z"));
+  it("本名・メール・学年・都道府県を消し、削除日時を入れる", () => {
+    const erased = erasePrivateProfile({ userId: "s1", fullName: "本名", email: "a@example.com", grade: "e5", prefecture: "栃木県", createdAt: "2026-01-01T00:00:00Z", deletedAt: null }, new Date("2026-09-24T00:00:00Z"));
     expect(erased.fullName).toBe("");
-    expect(erased.email).not.toContain("a@example.com");
-    expect(erased.email.endsWith(".invalid")).toBe(true);
+    expect(erased.email).toBeNull();
+    expect(erased.grade).toBeNull();
+    expect(erased.prefecture).toBeNull();
     expect(erased.deletedAt).toBe("2026-09-24T00:00:00.000Z");
   });
   it("公開プロフィールを匿名化する", () => {

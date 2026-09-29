@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { memberCreateFormSchema, planAssignSchema, toMemberCreateInput } from "@/domain/schemas";
+import { approveApplicationSchema, issueInvitationSchema, memberCreateFormSchema, planAssignSchema, rejectApplicationSchema, toMemberCreateInput } from "@/domain/schemas";
 import { getCurrentActor, getServiceContext } from "../current-actor";
+import { issueAccountInvitation } from "../services/account-service";
 import { assignPlan, createMember } from "../services/members-service";
+import { approveApplication, rejectApplication } from "../services/registration-service";
 import { runAction } from "./action-result";
 
 /**
@@ -27,5 +29,37 @@ export async function assignPlanAction(userId: unknown, planCode: unknown) {
     return { planCode: input.planCode };
   });
   if (result.ok) revalidatePath("/admin/users");
+  return result;
+}
+
+/**
+ * ログイン用リンクの発行（パスワードの設定・再設定）。
+ * リンクのトークンはこのレスポンスでだけ返す。保存しているのはハッシュだけなので、あとから同じリンクは出せない。
+ */
+export async function issueAccountInvitationAction(userId: unknown) {
+  return runAction("invitation.issue", async () => {
+    const input = issueInvitationSchema.parse({ userId });
+    const issued = await issueAccountInvitation(getServiceContext(), await getCurrentActor(), input);
+    return { invitePath: `/invite/${issued.token}`, expiresAt: issued.expiresAt.toISOString() };
+  });
+}
+
+export async function approveApplicationAction(applicationId: unknown, planCode: unknown) {
+  const result = await runAction("application.approve", async () => {
+    const input = approveApplicationSchema.parse({ applicationId, planCode: planCode === "" ? null : planCode });
+    const approved = await approveApplication(getServiceContext(), await getCurrentActor(), input);
+    return { invitePath: `/invite/${approved.invitation.token}`, expiresAt: approved.invitation.expiresAt.toISOString(), reusedGuardian: approved.reusedGuardian };
+  });
+  // 一覧を読み直さない。読み直すと承認した行が「審査待ち」から消え、1回しか表示できない招待リンクも一緒に消えてしまうため
+  return result;
+}
+
+export async function rejectApplicationAction(applicationId: unknown, note: unknown) {
+  const result = await runAction("application.reject", async () => {
+    const input = rejectApplicationSchema.parse({ applicationId, note: typeof note === "string" ? note : undefined });
+    await rejectApplication(getServiceContext(), await getCurrentActor(), input);
+    return { rejected: true };
+  });
+  if (result.ok) revalidatePath("/admin/applications");
   return result;
 }

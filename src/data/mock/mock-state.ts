@@ -1,5 +1,9 @@
 import type {
   AuditLog,
+  Credential,
+  Invitation,
+  RegistrationApplication,
+  Session,
   ClassEnrollment,
   ClassRoom,
   CoachAssignment,
@@ -40,6 +44,10 @@ export interface MockState {
   pointTransactions: PointTransaction[];
   exchangeItems: ExchangeItem[];
   auditLogs: AuditLog[];
+  applications: RegistrationApplication[];
+  invitations: Invitation[];
+  credentials: Credential[];
+  sessions: Session[];
   videos: Video[];
   classRooms: ClassRoom[];
   lectureCategories: LectureCategory[];

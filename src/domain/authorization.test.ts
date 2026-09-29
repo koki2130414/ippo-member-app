@@ -125,6 +125,9 @@ describe("運営とルート", () => {
     expect(rolesAllowedForPath("/")).toBe("public");
     expect(rolesAllowedForPath("/login")).toBe("public");
     expect(rolesAllowedForPath("/reset-password/confirm")).toBe("public");
+    expect(rolesAllowedForPath("/invite/abc")).toBe("public");
+    expect(rolesAllowedForPath("/setup")).toBe("public");
+    expect(rolesAllowedForPath("/register")).toBe("public");
     expect(rolesAllowedForPath("/admin/users")).toEqual(["admin"]);
     expect(rolesAllowedForPath("/administrator")).toEqual(["student", "guardian"]);
     expect(rolesAllowedForPath("/coach/notes")).toEqual(["coach"]);

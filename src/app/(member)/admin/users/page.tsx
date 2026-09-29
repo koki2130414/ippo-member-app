@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IssueLoginLink } from "@/components/issue-login-link";
 import { MemberCreateForm } from "@/components/member-create-form";
+import { isGuestUserId } from "@/data/seed/ids";
 import { Pagination } from "@/components/pagination";
 import { PlanAssignForm } from "@/components/plan-assign-form";
 import { QueryTabs } from "@/components/query-tabs";
@@ -73,6 +75,8 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                   </p>
                 </div>
                 {row.role === "student" ? <PlanAssignForm userId={row.userId} rowIndex={index + 1} currentPlanCode={row.planCode} plans={planOptions} /> : null}
+                <p className="text-xs text-muted-foreground" data-testid="admin-user-login-state">{row.hasLogin ? "ログイン：設定ずみ" : "ログイン：まだ（パスワード未設定）"}</p>
+                {row.userId === actor.userId || isGuestUserId(row.userId) ? null : <IssueLoginLink userId={row.userId} hasLogin={row.hasLogin} />}
               </Card>
             </li>
           ))}

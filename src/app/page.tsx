@@ -13,9 +13,14 @@ export default function LandingPage() {
       <p className="mt-4 text-muted-foreground">
         だれかと比べるのではなく、きのうの自分と比べよう。少しずつ続けることを、いっしょに応援します。
       </p>
-      <Link href="/login" className={`${buttonVariants({ size: "lg" })} mt-6`} data-testid="lp-login">
-        会員の方はこちら（ログイン）
-      </Link>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link href="/register" className={buttonVariants({ size: "lg" })} data-testid="lp-register">
+          入会を申し込む
+        </Link>
+        <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })} data-testid="lp-login">
+          会員の方はこちら（ログイン）
+        </Link>
+      </div>
 
       <section aria-labelledby="plans-heading" className="mt-10">
         <h2 id="plans-heading" className="text-xl font-bold">料金プラン</h2>

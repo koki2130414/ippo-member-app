@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { demoSignInAction, type DemoSignInState } from "@/server/actions/auth-actions";
+import { demoSignInAction, type SignInState } from "@/server/actions/auth-actions";
 import type { UserRole } from "@/domain/types";
 import { StatusMessage } from "./status-message";
 import { Button } from "./ui/button";
@@ -13,7 +13,7 @@ const ROLE_BUTTONS: { role: UserRole; label: string; description: string }[] = [
   { role: "admin", label: "運営としてログイン", description: "管理画面" },
 ];
 
-const initialState: DemoSignInState = { message: null };
+const initialState: SignInState = { message: null };
 
 /** デモモード専用のワンクリックログイン（仕様 10.7）。本番モードではこの部品自体を描画しない */
 export function DemoLoginPanel({ availableRoles, next }: { availableRoles: UserRole[]; next: string | null }) {
