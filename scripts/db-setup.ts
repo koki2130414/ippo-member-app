@@ -5,7 +5,7 @@
  */
 import postgres from "postgres";
 import { loadMigrations } from "../src/data/sql/migrations";
-import { normalizeDatabaseUrl, toSqlParams } from "../src/data/sql/postgres-shared";
+import { normalizeDatabaseUrl, POSTGRES_JSON_TYPE, toSqlParams } from "../src/data/sql/postgres-shared";
 import { runMigrations, seedBaseContent } from "../src/data/sql/setup";
 import type { SqlClient } from "../src/data/sql/sql-client";
 
@@ -16,7 +16,7 @@ async function main(): Promise<void> {
     return;
   }
   const { url, ssl } = normalizeDatabaseUrl(raw);
-  const sql = postgres(url, { max: 1, prepare: false, connect_timeout: 15, ...(ssl ? { ssl: "require" } : {}) });
+  const sql = postgres(url, { max: 1, prepare: false, types: { json: POSTGRES_JSON_TYPE }, connect_timeout: 15, ...(ssl ? { ssl: "require" } : {}) });
   const client: SqlClient = {
     query: async <T,>(text: string, params: readonly unknown[] = []) => [...(await sql.unsafe<T[]>(text, toSqlParams(params)))],
     exec: async (script: string) => {

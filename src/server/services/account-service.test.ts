@@ -84,12 +84,17 @@ describe("パスワードでのログイン", () => {
     const harness = createTestContext();
     const issued = await issueAccountInvitation(harness.context, await harness.actorOf(DEMO_IDS.admin), { userId: DEMO_IDS.student });
     const loginId = (await acceptInvitation(harness.context, { token: issued.token, password: "hikaru-pass-1" })).loginIds[0]?.loginId ?? "";
-    const wrongPassword = signInWithPassword(harness.context, { loginId, password: "nope-nope-1" });
-    const unknownId = signInWithPassword(harness.context, { loginId: "ippo-000000", password: "hikaru-pass-1" });
-    await expect(wrongPassword).rejects.toMatchObject({ code: "unauthenticated" });
-    await expect(unknownId).rejects.toMatchObject({ code: "unauthenticated" });
-    const [a, b] = await Promise.allSettled([wrongPassword, unknownId]);
-    expect(a.status === "rejected" && b.status === "rejected" && a.reason.userMessage === b.reason.userMessage).toBe(true);
+    // 2つを同時に待つ（片方だけ先に失敗すると「だれも待っていない失敗」になるため）
+    const [a, b] = await Promise.allSettled([
+      signInWithPassword(harness.context, { loginId, password: "nope-nope-1" }),
+      signInWithPassword(harness.context, { loginId: "ippo-000000", password: "hikaru-pass-1" }),
+    ]);
+    expect(a.status).toBe("rejected");
+    expect(b.status).toBe("rejected");
+    if (a.status !== "rejected" || b.status !== "rejected") return;
+    expect(a.reason).toMatchObject({ code: "unauthenticated" });
+    expect(b.reason).toMatchObject({ code: "unauthenticated" });
+    expect(a.reason.userMessage).toBe(b.reason.userMessage);
   });
 
   it("退会した会員はログインできない", async () => {

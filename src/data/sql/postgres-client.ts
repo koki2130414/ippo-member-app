@@ -1,6 +1,6 @@
 import "server-only";
 import postgres from "postgres";
-import { normalizeDatabaseUrl, toSqlParams } from "./postgres-shared";
+import { normalizeDatabaseUrl, POSTGRES_JSON_TYPE, toSqlParams } from "./postgres-shared";
 import type { SqlClient } from "./sql-client";
 
 /**
@@ -42,7 +42,7 @@ declare global {
 export function postgresClient(rawUrl: string): SqlClient {
   if (!globalThis.__ippoPostgres) {
     const { url, ssl } = normalizeDatabaseUrl(rawUrl);
-    globalThis.__ippoPostgres = postgres(url, { prepare: false, max: 3, idle_timeout: 20, connect_timeout: 10, ...(ssl ? { ssl: "require" } : {}) });
+    globalThis.__ippoPostgres = postgres(url, { prepare: false, types: { json: POSTGRES_JSON_TYPE }, max: 3, idle_timeout: 20, connect_timeout: 10, ...(ssl ? { ssl: "require" } : {}) });
   }
   return wrap(globalThis.__ippoPostgres, false);
 }

@@ -22,3 +22,16 @@ export function toSqlParams(params: readonly unknown[]): SqlParam[] {
     return JSON.stringify(value);
   });
 }
+
+/**
+ * postgres.js は、サーバーが json / jsonb 型と判断したパラメータを自分で JSON.stringify する。
+ * こちらは toSqlParams で先に JSON 文字列にしているので、そのままだと二重にエンコードされて
+ * 「配列」ではなく「文字列」の JSON になる（本番のビルドで cannot extract elements from a scalar になった）。
+ * 文字列はすでに JSON なのでそのまま渡し、それ以外だけ JSON にする。
+ */
+export const POSTGRES_JSON_TYPE = {
+  to: 114,
+  from: [114, 3802],
+  serialize: (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value)),
+  parse: (value: string): unknown => JSON.parse(value),
+};
