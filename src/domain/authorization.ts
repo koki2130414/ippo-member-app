@@ -151,6 +151,10 @@ export function rolesAllowedForPath(pathname: string): readonly UserRole[] | "pu
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return ["admin"];
   if (pathname === "/coach" || pathname.startsWith("/coach/")) return ["coach"];
   if (pathname === "/guardian" || pathname.startsWith("/guardian/")) return ["guardian"];
-  // 生徒向けの画面は保護者も（紐づいた子の分だけ）見る。コーチ・運営は各自の画面を使う
+  // 会員向けの中身（ホーム・動画・講義）は、運営も「会員からどう見えるか」を確かめるために開ける。
+  // 運営の閲覧では記録もポイントもつかない（サービス層で生徒だけに限っている）
+  const memberPreviewPaths = ["/home", "/videos", "/lectures"];
+  if (memberPreviewPaths.some(matches)) return ["student", "guardian", "admin"];
+  // それ以外の生徒向けの画面は保護者も（紐づいた子の分だけ）見る。コーチ・運営は各自の画面を使う
   return ["student", "guardian"];
 }

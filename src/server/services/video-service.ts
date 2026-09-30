@@ -18,7 +18,8 @@ import { awardForOwnAction, type AwardOutcome } from "./points-service";
  * それは Server Action（POST）のレスポンスにしか載らない。
  */
 
-const MEMBER_ROLES = ["student", "guardian"] as const;
+/** 運営は「会員からどう見えるか」の確認用に見られる。記録・ポイントは生徒だけ */
+const MEMBER_ROLES = ["student", "guardian", "admin"] as const;
 export const VIDEO_PAGE_SIZE = 12;
 
 export interface VideoListView {

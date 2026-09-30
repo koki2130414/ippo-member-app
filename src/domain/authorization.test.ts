@@ -136,3 +136,14 @@ describe("運営とルート", () => {
     expect(rolesAllowedForPath("/forbidden")).toContain("coach");
   });
 });
+
+describe("運営による会員画面の確認", () => {
+  it("運営はホーム・動画・講義を開けるが、ほかの生徒向け画面やコーチの画面は開けない", () => {
+    for (const path of ["/home", "/videos", "/videos/abc", "/lectures", "/lectures/abc"]) {
+      expect(rolesAllowedForPath(path)).toEqual(["student", "guardian", "admin"]);
+    }
+    expect(rolesAllowedForPath("/coach")).toEqual(["coach"]);
+    expect(rolesAllowedForPath("/notes")).toEqual(["student", "guardian"]);
+    expect(rolesAllowedForPath("/homework")).toEqual(["student", "guardian"]);
+  });
+});

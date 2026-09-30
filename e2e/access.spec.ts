@@ -24,7 +24,8 @@ const forbiddenCases = [
   { role: "guardian", path: "/admin" },
   { role: "coach", path: "/videos" },
   { role: "coach", path: "/admin" },
-  { role: "admin", path: "/home" },
+  { role: "admin", path: "/coach" },
+  { role: "admin", path: "/guardian" },
 ] as const;
 
 for (const { role, path } of forbiddenCases) {

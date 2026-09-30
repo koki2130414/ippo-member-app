@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { EntitlementNotice } from "@/components/entitlement-notice";
 import { Pagination } from "@/components/pagination";
 import { QueryTabs } from "@/components/query-tabs";
@@ -19,7 +20,7 @@ function parseCategory(value: string | undefined): VideoCategory | undefined {
 }
 
 export default async function VideosPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const actor = await requirePageActor(["student", "guardian"], "/videos");
+  const actor = await requirePageActor(["student", "guardian", "admin"], "/videos");
   const query = listQuerySchema.parse(await searchParams);
   // 知らないタブ名は「すべて」として扱う（URL は誰でも書き換えられるので）
   const category = parseCategory(query.tab);
@@ -28,6 +29,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
 
   return (
     <main data-page="videos" data-state="ready" className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+      {actor.role === "admin" ? <AdminPreviewBar /> : null}
       <h1 className="text-2xl font-bold">クラス動画</h1>
       <QueryTabs
         basePath="/videos"

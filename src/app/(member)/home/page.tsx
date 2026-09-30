@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { Card } from "@/components/ui/card";
 import { getServiceContext } from "@/server/current-actor";
 import { requirePageActor } from "@/server/page-guards";
@@ -8,11 +9,12 @@ import { getStudentHome } from "@/server/services/home-service";
 export const metadata: Metadata = { title: "ホーム" };
 
 export default async function StudentHomePage() {
-  const actor = await requirePageActor(["student"], "/home");
+  const actor = await requirePageActor(["student", "admin"], "/home");
   const home = await getStudentHome(getServiceContext(), actor);
 
   return (
     <main data-page="student-home" data-state="ready" className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+      {actor.role === "admin" ? <AdminPreviewBar /> : null}
       <div>
         <p className="text-sm text-muted-foreground">{home.planName ?? "プラン未加入"}</p>
         <h1 className="text-2xl font-bold">こんにちは、{home.displayName}</h1>

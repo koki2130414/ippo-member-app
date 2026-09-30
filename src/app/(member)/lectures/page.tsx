@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { EntitlementNotice } from "@/components/entitlement-notice";
 import { Pagination } from "@/components/pagination";
 import { QueryTabs } from "@/components/query-tabs";
@@ -13,7 +14,7 @@ import { listLecturesForMember } from "@/server/services/lecture-service";
 export const metadata: Metadata = { title: "講義" };
 
 export default async function LecturesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const actor = await requirePageActor(["student", "guardian"], "/lectures");
+  const actor = await requirePageActor(["student", "guardian", "admin"], "/lectures");
   const query = listQuerySchema.parse(await searchParams);
   const context = getServiceContext();
   // タブの値はカテゴリーID。存在しないものは「すべて」にする
@@ -26,6 +27,7 @@ export default async function LecturesPage({ searchParams }: { searchParams: Pro
 
   return (
     <main data-page="lectures" data-state="ready" className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+      {actor.role === "admin" ? <AdminPreviewBar /> : null}
       <h1 className="text-2xl font-bold">講義</h1>
       <QueryTabs
         basePath="/lectures"

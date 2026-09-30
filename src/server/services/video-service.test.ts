@@ -24,11 +24,23 @@ describe("動画の一覧と詳細", () => {
     expect(list.page.items.every((video) => video.category === "fitness")).toBe(true);
   });
 
-  it("コーチ・運営は会員向けの動画画面を使えない", async () => {
+  it("コーチは会員向けの動画画面を使えない", async () => {
     const harness = createTestContext();
-    for (const userId of [DEMO_IDS.coach, DEMO_IDS.admin]) {
-      await expect(listVideosForMember(harness.context, await harness.actorOf(userId), { category: undefined, page: 1 })).rejects.toMatchObject({ code: "forbidden" });
-    }
+    await expect(listVideosForMember(harness.context, await harness.actorOf(DEMO_IDS.coach), { category: undefined, page: 1 })).rejects.toMatchObject({ code: "forbidden" });
+  });
+
+  it("運営は会員と同じ動画を見られるが、記録もポイントもつかない", async () => {
+    const harness = createTestContext();
+    const admin = await harness.actorOf(DEMO_IDS.admin);
+    const list = await listVideosForMember(harness.context, admin, { category: undefined, page: 1 });
+    expect(list.access.status).toBe("available");
+    expect(list.page.items.length).toBeGreaterThan(0);
+    const detail = await getVideoDetail(harness.context, admin, "video-sample-mux");
+    expect(detail.canEarnPoints).toBe(false);
+    const playback = await startPlayback(harness.context, admin, "video-sample-mux");
+    expect(playback.viewSessionId).toBeNull();
+    await expect(completeVideo(harness.context, admin, { videoId: "video-sample-mux", viewSessionId: "any" })).rejects.toMatchObject({ code: "forbidden" });
+    expect(harness.state.pointTransactions.filter((transaction) => transaction.userId === DEMO_IDS.admin)).toHaveLength(0);
   });
 
   it("未公開の動画は存在しない扱い", async () => {

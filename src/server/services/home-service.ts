@@ -18,7 +18,9 @@ export interface StudentHomeView {
 
 /** 生徒のホーム。数字は「自分の積み上げ」だけで、他人との比較は出さない */
 export async function getStudentHome(context: ServiceContext, actor: Actor | null): Promise<StudentHomeView> {
-  const student = requireRole(actor, ["student"], "home.student");
+  const viewer = requireRole(actor, ["student", "admin"], "home.student");
+  if (viewer.role === "admin") return adminPreviewHome(context, viewer.userId);
+  const student = viewer;
   const [profile, membership, plans, transactions, videoProgress, lectureProgress] = await Promise.all([
     context.store.getPublicProfile(student.userId),
     context.store.getActiveMembership(student.userId),
@@ -38,6 +40,21 @@ export async function getStudentHome(context: ServiceContext, actor: Actor | nul
     balance: sumBalance(transactions),
     completedVideoCount: videoProgress.filter((item) => item.completedAt !== null).length,
     completedLectureCount: lectureProgress.filter((item) => item.completedAt !== null).length,
+  };
+}
+
+/** 運営が会員のホームを確かめるとき。だれか特定の生徒の数字は出さず、はじめての生徒と同じ見え方にする */
+async function adminPreviewHome(context: ServiceContext, adminId: string): Promise<StudentHomeView> {
+  const profile = await context.store.getPublicProfile(adminId);
+  const streak = computeStreak([], toJstDate(context.now()));
+  return {
+    displayName: profile?.displayName ?? "運営",
+    planName: "運営のプレビュー（会員からはこう見えます）",
+    streak,
+    streakMessage: describeStreak(streak),
+    balance: 0,
+    completedVideoCount: 0,
+    completedLectureCount: 0,
   };
 }
 

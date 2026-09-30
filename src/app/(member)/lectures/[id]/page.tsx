@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { EntitlementNotice } from "@/components/entitlement-notice";
 import { LectureProgress } from "@/components/lecture-progress";
 import { QuizForm } from "@/components/quiz-form";
@@ -13,13 +14,14 @@ export const metadata: Metadata = { title: "講義" };
 
 export default async function LectureDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const actor = await requirePageActor(["student", "guardian"], `/lectures/${id}`);
+  const actor = await requirePageActor(["student", "guardian", "admin"], `/lectures/${id}`);
   // 設問は QuizQuestionPublic（正解フラグなし）。採点はクイズを送ったときにサーバーで行う
   const detail = await loadForPage(() => getLectureDetail(getServiceContext(), actor, id));
   const hasAccess = detail.access.status === "available";
 
   return (
     <main data-page="lecture-detail" data-state="ready" className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+      {actor.role === "admin" ? <AdminPreviewBar /> : null}
       <Link href={`/lectures?tab=${detail.lecture.categoryId}`} className="text-sm font-semibold text-primary" data-testid="lecture-back">← {detail.categoryName ?? "講義"}</Link>
       <h1 className="text-2xl font-bold">{detail.lecture.title}</h1>
 

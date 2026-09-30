@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { EntitlementNotice } from "@/components/entitlement-notice";
 import { OutsideAppWarning } from "@/components/outside-app-warning";
 import { VideoPlayer } from "@/components/video-player";
@@ -14,13 +15,14 @@ export const metadata: Metadata = { title: "クラス動画" };
 
 export default async function VideoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const actor = await requirePageActor(["student", "guardian"], `/videos/${id}`);
+  const actor = await requirePageActor(["student", "guardian", "admin"], `/videos/${id}`);
   // ここで受け取るのは VideoSummary（配信元の秘密ID なし）。再生の許可はプレイヤーが POST でもらう
   const detail = await loadForPage(() => getVideoDetail(getServiceContext(), actor, id));
   const { video } = detail;
 
   return (
     <main data-page="video-detail" data-state="ready" className="mx-auto max-w-3xl space-y-4 px-4 py-6">
+      {actor.role === "admin" ? <AdminPreviewBar /> : null}
       <Link href={`/videos?tab=${video.category}`} className="text-sm font-semibold text-primary" data-testid="video-back">← {VIDEO_CATEGORY_LABELS[video.category]}の動画</Link>
       <div>
         <h1 className="text-2xl font-bold">{video.title}</h1>

@@ -5,7 +5,7 @@ import type { ServiceContext } from "./context";
 /**
  * 「この人は、この機能を使えるか」をプランから判定する。
  * 生徒は自分のプラン。保護者は、紐づいた子のうち誰か1人でも使えれば使える（子どもといっしょに見る想定）。
- * コーチ・運営は会員向け機能のプラン判定の対象外（それぞれの画面を使う）。
+ * 運営は確認のためにすべて見られる。コーチは会員向け機能の対象外（コーチの画面を使う）。
  */
 export async function evaluateAccess(context: ServiceContext, actor: Actor, feature: PlanFeature, usedThisMonth = 0): Promise<Entitlement> {
   const plans = await context.store.listPlans();
@@ -24,5 +24,7 @@ export async function evaluateAccess(context: ServiceContext, actor: Actor, feat
     );
     return results.find((result) => result.status === "available") ?? results[0] ?? evaluate({ plan: null, feature, usedThisMonth: 0, allPlans: plans, now });
   }
+  // 運営は、会員画面の確認のためにプランに関係なく中身を見られる（記録はしない）
+  if (actor.role === "admin") return { status: "available", feature, remainingThisMonth: null };
   return evaluate({ plan: null, feature, usedThisMonth: 0, allPlans: plans, now });
 }

@@ -17,7 +17,8 @@ import { awardForOwnAction, type AwardOutcome } from "./points-service";
  * 採点はここで行い、正解と解説は「送信のあと」の結果にだけ入れる。
  */
 
-const MEMBER_ROLES = ["student", "guardian"] as const;
+/** 運営は「会員からどう見えるか」の確認用に見られる。記録・ポイントは生徒だけ */
+const MEMBER_ROLES = ["student", "guardian", "admin"] as const;
 export const LECTURE_PAGE_SIZE = 12;
 
 export interface LectureListView {
