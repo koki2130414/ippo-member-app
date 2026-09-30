@@ -56,7 +56,6 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{video.description}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs">
                   {completed.has(video.id) ? <span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">見おわった</span> : null}
-                  {video.viewableOutsideApp ? <span className="rounded-full bg-destructive/10 px-2 py-0.5 font-semibold text-destructive">YouTube（外でも見られます）</span> : null}
                 </div>
               </Link>
             </li>

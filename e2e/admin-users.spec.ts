@@ -48,10 +48,10 @@ test.describe("生徒", () => {
     const response = await page.goto("/admin/users");
     expect(response?.status()).toBe(403);
   });
-  test("IPPO のクラス動画が一覧にあり、YouTube の注意が出る", async ({ page }) => {
+  test("IPPO のクラス動画が一覧にあり、注意書きなしで再生できる", async ({ page }) => {
     await page.goto("/videos?tab=soccer_iq");
     await page.getByTestId("video-card").filter({ hasText: "ポジション別②〜（9/27）" }).click();
-    await expect(page.getByTestId("video-outside-app-warning")).toBeVisible();
+    await expect(page.getByTestId("video-outside-app-warning")).toHaveCount(0);
     await page.getByTestId("video-play").click();
     await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/bJDmJon3lRg"]')).toBeVisible();
   });

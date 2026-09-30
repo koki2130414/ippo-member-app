@@ -59,9 +59,11 @@ test("再生すると再生の許可をもらい、早すぎる「見おわっ�
   await expect(page.locator('[role="status"][data-testid="video-complete-result"]')).toContainText("もう少し見てみよう");
 });
 
-test("YouTube の動画には「アプリの外でも見られます」を出す", async ({ page }) => {
+// 会員画面には「アプリの外でも見られます」を出さない（運営の判断: 2026-10-01）。運営の動画登録画面には引き続き出す
+test("YouTube の動画は会員画面で注意書きなしに再生できる", async ({ page }) => {
   await page.goto("/videos/video-sample-youtube");
-  await expect(page.getByTestId("video-outside-app-warning")).toContainText("アプリの外でも見られます");
+  await expect(page.getByTestId("video-outside-app-warning")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("アプリの外でも見られます");
   await page.getByTestId("video-play").click();
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });

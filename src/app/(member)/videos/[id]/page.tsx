@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPreviewBar } from "@/components/admin-preview-bar";
 import { EntitlementNotice } from "@/components/entitlement-notice";
-import { OutsideAppWarning } from "@/components/outside-app-warning";
 import { VideoPlayer } from "@/components/video-player";
 import { VIDEO_CATEGORY_LABELS, formatDuration } from "@/domain/learning";
 import { describeEntitlement } from "@/domain/plans";
@@ -29,7 +28,6 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
         <p className="mt-1 text-sm text-muted-foreground">{formatDuration(video.durationSeconds)}</p>
       </div>
 
-      {video.viewableOutsideApp ? <OutsideAppWarning testId="video-outside-app-warning" /> : null}
 
       {detail.access.status === "available" ? (
         <VideoPlayer video={video} minimumWatchSeconds={detail.minimumWatchSeconds} canEarnPoints={detail.canEarnPoints} initiallyCompleted={detail.completed} />
