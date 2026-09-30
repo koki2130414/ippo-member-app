@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GuestLinkPanel } from "@/components/guest-link-panel";
+import { getServiceContext } from "@/server/current-actor";
 import { requirePageActor } from "@/server/page-guards";
+import { getGuestLinkStatus } from "@/server/services/guest-link-service";
 
 export const metadata: Metadata = { title: "運営のホーム" };
 
 export default async function AdminHomePage() {
-  await requirePageActor(["admin"], "/admin");
+  const actor = await requirePageActor(["admin"], "/admin");
+  const guestLink = await getGuestLinkStatus(getServiceContext(), actor);
   return (
     <main data-page="admin-home" data-state="ready" className="mx-auto max-w-3xl space-y-4 px-4 py-6">
       <h1 className="text-2xl font-bold">運営のホーム</h1>
@@ -23,6 +27,7 @@ export default async function AdminHomePage() {
           </Link>
         </li>
       </ul>
+      <GuestLinkPanel active={guestLink.active} createdAt={guestLink.createdAt} />
       <p className="text-sm text-muted-foreground">動画・講義・お知らせなどの管理画面は準備中です（Phase 5）。</p>
     </main>
   );

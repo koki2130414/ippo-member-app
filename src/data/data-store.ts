@@ -2,6 +2,7 @@ import type {
   ApplicationStatus,
   AuditLog,
   Credential,
+  GuestLink,
   Invitation,
   ParentStudentLink,
   RegistrationApplication,
@@ -102,6 +103,13 @@ export interface DataStore {
   findInvitationByTokenHash(tokenHash: string): Promise<Invitation | null>;
   /** まだ使われていないときだけ使用済みにする。できたら true */
   markInvitationUsed(invitationId: string, usedAt: string): Promise<boolean>;
+  // --- 見学リンク（有効なのは常に1本） ---
+  /** 有効な見学リンクをすべて止めてから、新しい1本を入れる（まとめて1回で） */
+  replaceGuestLink(link: GuestLink): Promise<void>;
+  /** 有効な見学リンクを止める。止めた本数を返す */
+  revokeGuestLinks(revokedAt: string): Promise<number>;
+  getActiveGuestLink(): Promise<GuestLink | null>;
+  findActiveGuestLinkByTokenHash(tokenHash: string): Promise<GuestLink | null>;
   getCredentialByLoginId(loginId: string): Promise<Credential | null>;
   getCredentialByUserId(userId: UserId): Promise<Credential | null>;
   saveCredential(credential: Credential): Promise<{ outcome: "saved" } | { outcome: "login_id_taken" }>;

@@ -43,6 +43,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </div>
 
       {params.reset === "1" ? <StatusMessage tone="success" testId="demo-reset-done">デモのデータを最初の状態にもどしました</StatusMessage> : null}
+      {params.guest === "invalid" ? <StatusMessage tone="error" testId="guest-link-invalid">この見学リンクは使えません。新しいリンクを運営にたずねてください</StatusMessage> : null}
       {next ? <StatusMessage tone="info">ログインすると、見ようとしていたページにもどります</StatusMessage> : null}
 
       <Card className="space-y-4" data-testid="login-panel">

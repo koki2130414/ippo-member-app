@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { approveApplicationSchema, issueInvitationSchema, memberCreateFormSchema, planAssignSchema, rejectApplicationSchema, toMemberCreateInput } from "@/domain/schemas";
 import { getCurrentActor, getServiceContext } from "../current-actor";
 import { issueAccountInvitation } from "../services/account-service";
+import { issueGuestLink, revokeGuestLink } from "../services/guest-link-service";
 import { assignPlan, createMember } from "../services/members-service";
 import { approveApplication, rejectApplication } from "../services/registration-service";
 import { runAction } from "./action-result";
@@ -61,5 +62,21 @@ export async function rejectApplicationAction(applicationId: unknown, note: unkn
     return { rejected: true };
   });
   if (result.ok) revalidatePath("/admin/applications");
+  return result;
+}
+
+/** 見学リンクを作る（前のリンクは使えなくなる）。リンクはこのときしか表示できない */
+export async function issueGuestLinkAction() {
+  const result = await runAction("guest_link.issue", async () => {
+    const issued = await issueGuestLink(getServiceContext(), await getCurrentActor());
+    return { guestPath: `/guest/${issued.token}`, createdAt: issued.createdAt };
+  });
+  return result;
+}
+
+/** 見学リンクを止める。見学中の人も、次に画面を開いたときから入れなくなる */
+export async function revokeGuestLinkAction() {
+  const result = await runAction("guest_link.revoke", async () => revokeGuestLink(getServiceContext(), await getCurrentActor()));
+  if (result.ok) revalidatePath("/admin");
   return result;
 }

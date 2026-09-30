@@ -76,6 +76,18 @@ export interface CoachAssignment {
  * 招待（初回のパスワード設定用の使い切りリンク）。
  * リンクのトークンそのものは保存せず、ハッシュだけを持つ（DB が漏れても招待リンクを作り直せないように）。
  */
+/**
+ * 見学リンク。運営が発行し、リンクを知っている人はログインなしで共用の「見学用」アカウントとして会員画面を見られる。
+ * 有効なのは常に1本だけ（作り直すと前のリンクは使えなくなる）。トークンはハッシュだけを保存する。
+ */
+export interface GuestLink {
+  id: string;
+  tokenHash: string;
+  createdBy: UserId;
+  createdAt: IsoDateTime;
+  revokedAt: IsoDateTime | null;
+}
+
 export interface Invitation {
   id: string;
   tokenHash: string;
@@ -586,6 +598,8 @@ export const AUDIT_ACTIONS = [
   "invitation.accept",
   "invitation.issue",
   "admin.setup",
+  "guest_link.issue",
+  "guest_link.revoke",
   "member.delete",
   "member.plan_assign",
   "link.create",

@@ -9,7 +9,7 @@ import { accountSetupSchema, invitationAcceptSchema, loginSchema, setupAdminSche
 import { USER_ROLES, type UserRole } from "@/domain/types";
 import { getServiceContext } from "../current-actor";
 import { isDemoMode } from "../env";
-import { GUEST_COOKIE_NAME, isGuestModeAvailable } from "../guest";
+import { DEMO_GUEST_COOKIE_VALUE, GUEST_COOKIE_NAME, isGuestModeAvailable } from "../guest";
 import { safeNextPath } from "../page-guards";
 import { acceptInvitation, canSetupFirstAdmin, setupFirstAdmin } from "../services/account-service";
 import { loadActor } from "../services/actor";
@@ -90,7 +90,7 @@ export async function demoSignInAction(_previous: SignInState, formData: FormDat
 export async function startGuestViewingAction(): Promise<void> {
   if (!isGuestModeAvailable()) redirect("/login");
   const cookieStore = await cookies();
-  cookieStore.set(GUEST_COOKIE_NAME, "1", {
+  cookieStore.set(GUEST_COOKIE_NAME, DEMO_GUEST_COOKIE_VALUE, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

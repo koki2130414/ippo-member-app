@@ -29,6 +29,7 @@ export function createEmptySeed(): MockState {
     auditLogs: [],
     applications: [],
     invitations: [],
+    guestLinks: [],
     credentials: [],
     sessions: [],
     videos: structuredClone(BASE_VIDEOS),

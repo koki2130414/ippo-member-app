@@ -1,5 +1,5 @@
 import { decideExchange, sumBalance } from "@/domain/points";
-import type { ApplicationStatus, AuditLog, Credential, Invitation, ParentStudentLink, RegistrationApplication, Session, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
+import type { ApplicationStatus, AuditLog, Credential, GuestLink, Invitation, ParentStudentLink, RegistrationApplication, Session, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
 import type { AppendPointResult, DataStore, ExchangeResult, NewMember, Page, PageQuery } from "../data-store";
 import type { MockState } from "./mock-state";
 
@@ -68,6 +68,31 @@ export class MockDataStore implements DataStore {
 
   async createInvitation(invitation: Invitation) {
     this.state.invitations.push(structuredClone(invitation));
+  }
+
+  async replaceGuestLink(link: GuestLink) {
+    // await をはさまずに書き換える（途中でほかのリクエストが割りこまない）
+    for (const item of this.state.guestLinks) if (item.revokedAt === null) item.revokedAt = link.createdAt;
+    this.state.guestLinks.push(structuredClone(link));
+  }
+
+  async revokeGuestLinks(revokedAt: string) {
+    let count = 0;
+    for (const item of this.state.guestLinks) {
+      if (item.revokedAt === null) {
+        item.revokedAt = revokedAt;
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  async getActiveGuestLink() {
+    return copyOrNull(this.state.guestLinks.find((item) => item.revokedAt === null));
+  }
+
+  async findActiveGuestLinkByTokenHash(tokenHash: string) {
+    return copyOrNull(this.state.guestLinks.find((item) => item.revokedAt === null && item.tokenHash === tokenHash));
   }
 
   async findInvitationByTokenHash(tokenHash: string) {

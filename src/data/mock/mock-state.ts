@@ -1,6 +1,7 @@
 import type {
   AuditLog,
   Credential,
+  GuestLink,
   Invitation,
   RegistrationApplication,
   Session,
@@ -46,6 +47,7 @@ export interface MockState {
   auditLogs: AuditLog[];
   applications: RegistrationApplication[];
   invitations: Invitation[];
+  guestLinks: GuestLink[];
   credentials: Credential[];
   sessions: Session[];
   videos: Video[];

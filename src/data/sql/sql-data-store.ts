@@ -9,6 +9,7 @@ import type {
   DiagnosisQuestion,
   ExchangeItem,
   Grade,
+  GuestLink,
   Invitation,
   Lecture,
   LectureCategory,
@@ -165,6 +166,10 @@ function toApplication(row: Row): RegistrationApplication {
     studentUserId: textOrNull(row, "student_user_id"),
     guardianUserId: textOrNull(row, "guardian_user_id"),
   };
+}
+
+function toGuestLink(row: Row): GuestLink {
+  return { id: text(row, "id"), tokenHash: text(row, "token_hash"), createdBy: text(row, "created_by"), createdAt: iso(row, "created_at"), revokedAt: isoOrNull(row, "revoked_at") };
 }
 
 function toInvitation(row: Row): Invitation {
@@ -338,6 +343,28 @@ export class SqlDataStore implements DataStore {
        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [i.id, i.tokenHash, i.purpose, i.guardianUserId, i.studentUserId, i.accountUserId, i.expiresAt, i.usedAt, i.createdBy, i.createdAt],
     );
+  }
+
+  async replaceGuestLink(link: GuestLink) {
+    await this.transaction(async (store) => {
+      if (!(store instanceof SqlDataStore)) throw new Error("unexpected store");
+      await store.rows("update guest_links set revoked_at = $1 where revoked_at is null", [link.createdAt]);
+      await store.rows("insert into guest_links (id, token_hash, created_by, created_at, revoked_at) values ($1, $2, $3, $4, $5)", [link.id, link.tokenHash, link.createdBy, link.createdAt, link.revokedAt]);
+    });
+  }
+
+  async revokeGuestLinks(revokedAt: string) {
+    return (await this.rows("update guest_links set revoked_at = $1 where revoked_at is null returning id", [revokedAt])).length;
+  }
+
+  async getActiveGuestLink() {
+    const row = await this.first("select * from guest_links where revoked_at is null order by created_at desc limit 1");
+    return row ? toGuestLink(row) : null;
+  }
+
+  async findActiveGuestLinkByTokenHash(tokenHash: string) {
+    const row = await this.first("select * from guest_links where token_hash = $1 and revoked_at is null", [tokenHash]);
+    return row ? toGuestLink(row) : null;
   }
 
   async findInvitationByTokenHash(tokenHash: string) {

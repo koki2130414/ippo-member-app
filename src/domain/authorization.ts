@@ -143,7 +143,7 @@ export const ROLE_HOME: Record<UserRole, string> = {
  */
 export function rolesAllowedForPath(pathname: string): readonly UserRole[] | "public" {
   const matches = (path: string): boolean => pathname === path || (path !== "/" && pathname.startsWith(`${path}/`));
-  const publicPaths = ["/", "/contact-public", "/login", "/register", "/reset-password", "/terms", "/privacy", "/invite", "/setup"];
+  const publicPaths = ["/", "/contact-public", "/login", "/register", "/reset-password", "/terms", "/privacy", "/invite", "/setup", "/guest"];
   if (publicPaths.some(matches)) return "public";
   // どのロールでも使う画面。/forbidden を特定ロールに絞ると、弾かれた人の行き先が無くなって転送が循環する
   const everyRolePaths = ["/forbidden", "/onboarding", "/settings", "/announcements", "/notifications", "/chat"];

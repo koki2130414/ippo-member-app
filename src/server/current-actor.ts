@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { getDataStore } from "@/data";
 import { DEMO_IDS } from "@/data/seed/ids";
-import { GUEST_COOKIE_NAME, isGuestModeAvailable } from "./guest";
+import { DEMO_GUEST_COOKIE_VALUE, GUEST_COOKIE_NAME, isGuestModeAvailable } from "./guest";
+import { isActiveGuestToken } from "./services/guest-link-service";
 import type { Actor } from "@/domain/types";
 import { loadActor } from "./services/actor";
 import { createServiceContext, type ServiceContext } from "./services/context";
@@ -22,9 +23,11 @@ export const getCurrentActor = cache(async (): Promise<Actor | null> => {
     const actor = await loadActor(context, userId);
     if (actor) return actor;
   }
-  // 見学モード: デモモードのときだけ、見学中の印があれば見学用アカウントとして扱う（server/guest.ts）
-  if (isGuestModeAvailable() && cookieStore.get(GUEST_COOKIE_NAME)?.value === "1") {
-    return loadActor(context, DEMO_IDS.guest);
+  // 見学（server/guest.ts）: デモの「見学する」ボタンの印か、今も有効な見学リンクのトークンなら、見学用アカウントとして扱う
+  const guestCookie = cookieStore.get(GUEST_COOKIE_NAME)?.value;
+  if (guestCookie) {
+    const demoGuest = isGuestModeAvailable() && guestCookie === DEMO_GUEST_COOKIE_VALUE;
+    if (demoGuest || (await isActiveGuestToken(context, guestCookie))) return loadActor(context, DEMO_IDS.guest);
   }
   return null;
 });

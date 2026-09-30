@@ -157,3 +157,28 @@ describe("ポイント（SQL 版）", () => {
     expect((await awardForOwnAction(context, student, { ruleCode: "video_completed", subject: "e" })).kind).toBe("awarded");
   });
 });
+
+describe("見学リンク（SQL）", () => {
+  it("有効なリンクは1本だけ。作り直し・停止・見学用アカウントの作成が本番と同じSQLで動く", async () => {
+    const { issueGuestLink, isActiveGuestToken, revokeGuestLink, GUEST_ACCOUNT_ID } = await import("@/server/services/guest-link-service");
+    const admin = await createAdmin();
+    const first = await issueGuestLink(context, admin);
+    expect(await isActiveGuestToken(context, first.token)).toBe(true);
+    const second = await issueGuestLink(context, admin);
+    expect(await isActiveGuestToken(context, first.token)).toBe(false);
+    expect(await isActiveGuestToken(context, second.token)).toBe(true);
+    const rows = await client.query<{ count: number }>("select count(*)::int as count from guest_links where revoked_at is null");
+    expect(rows[0]?.count).toBe(1);
+
+    const guest = await loadActor(context, GUEST_ACCOUNT_ID);
+    expect(guest?.role).toBe("student");
+    const list = await listVideosForMember(context, guest, { category: undefined, page: 1 });
+    expect(list.access.status).toBe("available");
+
+    expect(await revokeGuestLink(context, admin)).toEqual({ revoked: 1 });
+    expect(await isActiveGuestToken(context, second.token)).toBe(false);
+    // 有効なリンクが2本になる書き込みは、データベースが断る
+    await client.query("insert into guest_links (id, token_hash, created_by, created_at) values ('a', 'h1', 'x', now())");
+    await expect(client.query("insert into guest_links (id, token_hash, created_by, created_at) values ('b', 'h2', 'x', now())")).rejects.toThrow();
+  });
+});
