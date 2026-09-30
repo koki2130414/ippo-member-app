@@ -50,7 +50,7 @@ export default async function LecturesPage({ searchParams }: { searchParams: Pro
                 <p className="mt-1 font-semibold">{lecture.title}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs">
                   {completed.has(lecture.id) ? <span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">読みおわった</span> : null}
-                  {passed.has(lecture.id) ? <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">クイズ合格</span> : null}
+                  {passed.has(lecture.id) ? <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-link">クイズ合格</span> : null}
                 </div>
               </Link>
             </li>

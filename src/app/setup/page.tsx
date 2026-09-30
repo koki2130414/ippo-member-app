@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SetupAdminForm } from "@/components/setup-admin-form";
@@ -14,7 +15,7 @@ export default async function SetupPage() {
   return (
     <main data-page="setup" data-state="ready" className="mx-auto max-w-md space-y-6 px-4 py-10">
       <div>
-        <Link href="/" className="text-sm font-semibold text-primary">IPPO</Link>
+        <BrandLogo className="h-10" priority />
         <h1 className="mt-2 text-2xl font-bold">最初の運営アカウント</h1>
       </div>
       {open ? (
@@ -26,7 +27,7 @@ export default async function SetupPage() {
         <Card className="space-y-2" data-testid="setup-closed">
           <p className="font-semibold">運営アカウントは、もう作られています</p>
           <p className="text-sm text-muted-foreground">
-            <Link href="/login" className="font-semibold text-primary underline">ログイン画面</Link>からログインしてください。運営を追加するときは、運営の画面から行います。
+            <Link href="/login" className="font-semibold text-link underline">ログイン画面</Link>からログインしてください。運営を追加するときは、運営の画面から行います。
           </p>
         </Card>
       )}

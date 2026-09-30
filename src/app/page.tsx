@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { buttonVariants } from "@/components/ui/button";
 import { formatLimitForDisplay, listPlansForDisplay } from "@/domain/plans";
 
@@ -7,22 +8,27 @@ import { formatLimitForDisplay, listPlansForDisplay } from "@/domain/plans";
 export default function LandingPage() {
   const plans = listPlansForDisplay();
   return (
-    <main data-page="landing" data-state="ready" className="mx-auto max-w-3xl px-4 py-12">
-      <p className="text-sm font-semibold text-primary">IPPO オンラインサッカースクール</p>
-      <h1 className="mt-2 text-3xl font-bold">昨日の自分から、一歩前へ</h1>
-      <p className="mt-4 text-muted-foreground">
-        だれかと比べるのではなく、きのうの自分と比べよう。少しずつ続けることを、いっしょに応援します。
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/register" className={buttonVariants({ size: "lg" })} data-testid="lp-register">
-          入会を申し込む
-        </Link>
-        <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })} data-testid="lp-login">
-          会員の方はこちら（ログイン）
-        </Link>
-      </div>
+    <main data-page="landing" data-state="ready" className="mx-auto max-w-3xl px-4 py-10">
+      <section className="text-center">
+        <p className="text-xl font-extrabold tracking-wide sm:text-2xl">
+          サッカーを学ぶ、<span className="text-link">目の色</span>が変わる。
+        </p>
+        <BrandLogo full priority className="mx-auto mt-6 w-full max-w-md" />
+        <p className="mt-6 text-lg font-bold">昨日の自分から、一歩前へ</p>
+        <p className="mt-2 text-muted-foreground">
+          だれかと比べるのではなく、きのうの自分と比べよう。少しずつ続けることを、いっしょに応援します。
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/register" className={buttonVariants({ size: "lg" })} data-testid="lp-register">
+            入会を申し込む
+          </Link>
+          <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })} data-testid="lp-login">
+            会員の方はこちら（ログイン）
+          </Link>
+        </div>
+      </section>
 
-      <section aria-labelledby="plans-heading" className="mt-10">
+      <section aria-labelledby="plans-heading" className="mt-12">
         <h2 id="plans-heading" className="text-xl font-bold">料金プラン</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[36rem] border-collapse text-sm" data-testid="lp-plan-table">

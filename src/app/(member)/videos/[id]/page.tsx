@@ -22,7 +22,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
   return (
     <main data-page="video-detail" data-state="ready" className="mx-auto max-w-3xl space-y-4 px-4 py-6">
       {actor.role === "admin" ? <AdminPreviewBar /> : null}
-      <Link href={`/videos?tab=${video.category}`} className="text-sm font-semibold text-primary" data-testid="video-back">← {VIDEO_CATEGORY_LABELS[video.category]}の動画</Link>
+      <Link href={`/videos?tab=${video.category}`} className="text-sm font-semibold text-link" data-testid="video-back">← {VIDEO_CATEGORY_LABELS[video.category]}の動画</Link>
       <div>
         <h1 className="text-2xl font-bold">{video.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{formatDuration(video.durationSeconds)}</p>

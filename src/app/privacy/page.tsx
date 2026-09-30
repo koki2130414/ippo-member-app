@@ -1,5 +1,5 @@
+import { BrandLogo } from "@/components/brand-logo";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = { title: "個人情報の取り扱い" };
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "個人情報の取り扱い" };
 export default function PrivacyPage() {
   return (
     <main data-page="privacy" data-state="ready" className="mx-auto max-w-2xl space-y-5 px-4 py-10 text-sm leading-relaxed">
-      <Link href="/" className="font-semibold text-primary">IPPO</Link>
+      <BrandLogo className="h-10" />
       <h1 className="text-2xl font-bold">個人情報の取り扱い（準備中の版）</h1>
       <p className="rounded-lg border border-border bg-muted px-3 py-2">この文面は正式公開前のもので、専門家の確認を受けて改める予定です。</p>
 

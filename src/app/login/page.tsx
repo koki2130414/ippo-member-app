@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -38,7 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main data-page="login" data-state="ready" className="mx-auto max-w-md space-y-6 px-4 py-10">
       <div>
-        <Link href="/" className="text-sm font-semibold text-primary">IPPO</Link>
+        <BrandLogo className="h-10" priority />
         <h1 className="mt-2 text-2xl font-bold">ログイン</h1>
       </div>
 
@@ -50,7 +51,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <PasswordLoginForm next={next} />
         <p className="text-sm text-muted-foreground">
           はじめての方は、運営から届いたリンクからパスワードを決めてください。入会がまだの方は
-          <Link href="/register" className="font-semibold text-primary underline" data-testid="login-go-register">入会の申し込み</Link>
+          <Link href="/register" className="font-semibold text-link underline" data-testid="login-go-register">入会の申し込み</Link>
           へ。
         </p>
       </Card>

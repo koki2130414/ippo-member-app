@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand-logo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RegistrationForm } from "@/components/registration-form";
@@ -11,7 +12,7 @@ export default function RegisterPage() {
   return (
     <main data-page="register" data-state="ready" className="mx-auto max-w-md space-y-6 px-4 py-10">
       <div>
-        <Link href="/" className="text-sm font-semibold text-primary">IPPO</Link>
+        <BrandLogo className="h-10" priority />
         <h1 className="mt-2 text-2xl font-bold">入会の申し込み</h1>
         <p className="mt-2 text-sm text-muted-foreground">保護者の方がお申し込みください。運営が確認したあと、ログイン用のリンクをお送りします。</p>
       </div>
@@ -23,7 +24,7 @@ export default function RegisterPage() {
       <Card>
         <RegistrationForm />
       </Card>
-      <p className="text-sm">すでに会員の方は <Link href="/login" className="font-semibold text-primary underline">ログイン</Link></p>
+      <p className="text-sm">すでに会員の方は <Link href="/login" className="font-semibold text-link underline">ログイン</Link></p>
     </main>
   );
 }

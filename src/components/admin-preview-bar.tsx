@@ -17,11 +17,11 @@ export function AdminPreviewBar() {
       <ul className="mt-2 flex flex-wrap gap-3 font-semibold">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="text-primary underline" data-testid={link.testId}>{link.label}</Link>
+            <Link href={link.href} className="text-link underline" data-testid={link.testId}>{link.label}</Link>
           </li>
         ))}
         <li>
-          <Link href="/admin" className="text-primary underline" data-testid="admin-preview-back">運営のホームへもどる</Link>
+          <Link href="/admin" className="text-link underline" data-testid="admin-preview-back">運営のホームへもどる</Link>
         </li>
       </ul>
     </div>

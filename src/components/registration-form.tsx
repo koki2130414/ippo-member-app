@@ -76,7 +76,7 @@ export function RegistrationForm() {
           <input id="consent" type="checkbox" className="mt-1 h-5 w-5 accent-primary" {...describedBy("consent", false, errors.consent?.message)} {...register("consent")} />
           <label htmlFor="consent" className="text-sm">
             保護者として申し込みます。
-            <Link href="/privacy" className="font-semibold text-primary underline" target="_blank">個人情報の取り扱い</Link>
+            <Link href="/privacy" className="font-semibold text-link underline" target="_blank">個人情報の取り扱い</Link>
             を読み、同意します。
           </label>
         </div>

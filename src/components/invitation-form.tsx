@@ -120,7 +120,7 @@ export function InvitationPanel({ token, lookup }: { token: string; lookup: Invi
     return (
       <div className="space-y-3">
         <StatusMessage tone="error" testId="invite-unusable">{lookup.message}</StatusMessage>
-        <Link href="/login" className="text-sm font-semibold text-primary underline">ログイン画面へ</Link>
+        <Link href="/login" className="text-sm font-semibold text-link underline">ログイン画面へ</Link>
       </div>
     );
   }

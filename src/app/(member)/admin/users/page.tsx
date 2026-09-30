@@ -46,7 +46,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
         <Card className="space-y-3" data-testid="admin-user-add-panel">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">会員を追加</h2>
-            <Link href={`/admin/users?tab=${tabValue}`} className="text-sm text-primary underline" data-testid="admin-user-add-close">とじる</Link>
+            <Link href={`/admin/users?tab=${tabValue}`} className="text-sm text-link underline" data-testid="admin-user-add-close">とじる</Link>
           </div>
           <MemberCreateForm plans={planOptions} />
         </Card>

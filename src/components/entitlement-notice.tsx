@@ -9,7 +9,7 @@ export function EntitlementNotice({ message, testId }: { message: EntitlementMes
       <p className="font-semibold">{message.title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{message.nextStep}</p>
       {message.href ? (
-        <Link href={message.href} className="mt-3 inline-block text-sm font-semibold text-primary underline" data-testid={`${testId}-link`}>
+        <Link href={message.href} className="mt-3 inline-block text-sm font-semibold text-link underline" data-testid={`${testId}-link`}>
           プランを見る
         </Link>
       ) : null}

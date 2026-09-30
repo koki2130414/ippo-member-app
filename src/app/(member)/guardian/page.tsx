@@ -29,8 +29,8 @@ export default async function GuardianHomePage() {
         </ul>
       )}
       <p className="text-sm">
-        <Link href="/videos" className="font-semibold text-primary underline">クラス動画</Link> と{" "}
-        <Link href="/lectures" className="font-semibold text-primary underline">講義</Link> は、お子さまといっしょに見られます。
+        <Link href="/videos" className="font-semibold text-link underline">クラス動画</Link> と{" "}
+        <Link href="/lectures" className="font-semibold text-link underline">講義</Link> は、お子さまといっしょに見られます。
       </p>
     </main>
   );

@@ -22,7 +22,7 @@ export default async function StudentHomePage() {
 
       <Card className="space-y-1" data-testid="home-streak">
         <p className="text-sm text-muted-foreground">つづけている日数</p>
-        <p className="text-3xl font-bold text-primary">{home.streak.currentDays}<span className="ml-1 text-base">日</span></p>
+        <p className="text-3xl font-bold text-link">{home.streak.currentDays}<span className="ml-1 text-base">日</span></p>
         <p className="text-sm">{home.streakMessage}</p>
       </Card>
 

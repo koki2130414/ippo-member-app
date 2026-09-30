@@ -22,7 +22,7 @@ export default async function LectureDetailPage({ params }: { params: Promise<{ 
   return (
     <main data-page="lecture-detail" data-state="ready" className="mx-auto max-w-3xl space-y-5 px-4 py-6">
       {actor.role === "admin" ? <AdminPreviewBar /> : null}
-      <Link href={`/lectures?tab=${detail.lecture.categoryId}`} className="text-sm font-semibold text-primary" data-testid="lecture-back">← {detail.categoryName ?? "講義"}</Link>
+      <Link href={`/lectures?tab=${detail.lecture.categoryId}`} className="text-sm font-semibold text-link" data-testid="lecture-back">← {detail.categoryName ?? "講義"}</Link>
       <h1 className="text-2xl font-bold">{detail.lecture.title}</h1>
 
       {!hasAccess ? (
@@ -38,7 +38,7 @@ export default async function LectureDetailPage({ params }: { params: Promise<{ 
           {detail.video ? (
             <p className="text-sm">
               関連する動画：
-              <Link href={`/videos/${detail.video.id}`} className="font-semibold text-primary underline" data-testid="lecture-related-video">{detail.video.title}</Link>
+              <Link href={`/videos/${detail.video.id}`} className="font-semibold text-link underline" data-testid="lecture-related-video">{detail.video.title}</Link>
             </p>
           ) : null}
 

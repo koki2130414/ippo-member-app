@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOutAction } from "@/server/actions/auth-actions";
 import type { UserRole } from "@/domain/types";
+import { BrandLogo } from "./brand-logo";
 import { Button } from "./ui/button";
 
 const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: string }[]> = {
@@ -28,7 +29,7 @@ const ROLE_LABEL: Record<UserRole, string> = { student: "生徒", guardian: "保
 /** 会員画面の共通ヘッダー。表示名だけを出し、本名は出さない */
 export function SiteHeader({ role, displayName, isDemo, isGuest }: { role: UserRole; displayName: string; isDemo: boolean; isGuest: boolean }) {
   return (
-    <header className="border-b border-border bg-background" data-role={role}>
+    <header className="border-b-4 border-primary bg-background" data-role={role}>
       {isGuest ? (
         <p className="bg-accent px-4 py-1 text-center text-xs font-semibold text-accent-foreground" data-testid="guest-banner">
           見学モードです（ログインしていません）。「見おわった」やポイントは記録されません
@@ -38,12 +39,12 @@ export function SiteHeader({ role, displayName, isDemo, isGuest }: { role: UserR
           デモモードです。ここで作ったデータは、サーバーが再起動すると消えます
         </p>
       ) : null}
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-        <Link href={NAV_BY_ROLE[role][0]?.href ?? "/"} className="text-lg font-bold text-primary">IPPO</Link>
-        <div className="flex items-center gap-2 text-sm">
-          <span data-testid="header-display-name">
+      <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3">
+        <BrandLogo href={NAV_BY_ROLE[role][0]?.href ?? "/"} className="h-8 shrink-0" priority />
+        <div className="flex min-w-0 items-center gap-1 text-sm">
+          <span data-testid="header-display-name" className="min-w-0 truncate">
             {displayName}
-            <span className="ml-1 text-xs text-muted-foreground">（{ROLE_LABEL[role]}）</span>
+            <span className="ml-1 hidden text-xs text-muted-foreground sm:inline">（{ROLE_LABEL[role]}）</span>
           </span>
           <form action={signOutAction}>
             <Button type="submit" variant="ghost" size="sm" data-testid="header-sign-out">{isGuest ? "見学をおわる" : "ログアウト"}</Button>
@@ -51,10 +52,10 @@ export function SiteHeader({ role, displayName, isDemo, isGuest }: { role: UserR
         </div>
       </div>
       <nav aria-label="メインメニュー" className="mx-auto max-w-3xl px-4 pb-2">
-        <ul className="flex gap-4 text-sm font-semibold">
+        <ul className="flex flex-wrap gap-1 text-sm font-bold">
           {NAV_BY_ROLE[role].map((item) => (
             <li key={item.href}>
-              <Link href={item.href} data-testid={item.testId} className="inline-block py-1 hover:text-primary">{item.label}</Link>
+              <Link href={item.href} data-testid={item.testId} className="inline-block rounded-full px-3 py-1 text-secondary hover:bg-accent">{item.label}</Link>
             </li>
           ))}
         </ul>
