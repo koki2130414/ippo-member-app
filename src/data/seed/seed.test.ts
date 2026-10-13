@@ -13,11 +13,11 @@ describe("seed", () => {
     expect(state.lectureCategories.length).toBeGreaterThan(0);
   });
 
-  it("IPPO のクラス動画（42本）は empty にも入り、すべて YouTube 配信として扱う", () => {
+  it("IPPO のクラス動画（85本）は empty にも入り、すべて YouTube 配信として扱う", () => {
     const videos = createEmptySeed().videos;
-    expect(videos).toHaveLength(42);
-    expect(new Set(videos.map((video) => video.id)).size).toBe(42);
-    expect(new Set(videos.map((video) => video.youtubeId)).size).toBe(42);
+    expect(videos).toHaveLength(85);
+    expect(new Set(videos.map((video) => video.id)).size).toBe(85);
+    expect(new Set(videos.map((video) => video.youtubeId)).size).toBe(85);
     for (const video of videos) {
       expect(video.source).toBe("youtube");
       expect(video.youtubeId).toMatch(/^[A-Za-z0-9_-]{11}$/);

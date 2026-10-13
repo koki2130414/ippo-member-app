@@ -59,7 +59,7 @@ describe("データベースの準備", () => {
     await seedBaseContent(client);
     const [videos] = await client.query<{ count: number }>("select count(*)::int as count from videos");
     const [plans] = await client.query<{ count: number }>("select count(*)::int as count from plans");
-    expect(videos?.count).toBe(42);
+    expect(videos?.count).toBe(85);
     expect(plans?.count).toBe(5);
   });
 
@@ -99,8 +99,8 @@ describe("ログイン（SQL 版）", () => {
     const studentActor = await loadActor(context, student.userId);
     const list = await listVideosForMember(context, studentActor, { category: undefined, page: 1 });
     expect(list.access.status).toBe("available");
-    expect(list.page.total).toBe(42);
-    expect(list.page.items[0]?.title).toContain("（9/27）");
+    expect(list.page.total).toBe(85);
+    expect(list.page.items[0]?.title).toContain("（10/4）");
     expect((await startPlayback(context, studentActor, list.page.items[0]?.id ?? "")).grant.kind).toBe("youtube");
 
     const guardian = await loadActor(context, (await signInWithPassword(context, { loginId: "parent@example.invalid", password: "guardian-pass-1" })).userId);

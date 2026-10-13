@@ -133,7 +133,7 @@ describe("見学モード（見学用アカウント）", () => {
     const guest = await harness.actorOf(DEMO_IDS.guest);
     const list = await listVideosForMember(harness.context, guest, { category: undefined, page: 1 });
     expect(list.access.status).toBe("available");
-    expect(list.page.total).toBe(42);
+    expect(list.page.total).toBe(85);
 
     const videoId = list.page.items[0]?.id ?? "";
     expect((await getVideoDetail(harness.context, guest, videoId)).canEarnPoints).toBe(false);
