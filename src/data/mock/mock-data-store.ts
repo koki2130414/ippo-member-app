@@ -294,12 +294,29 @@ export class MockDataStore implements DataStore {
     return copyOrNull(this.state.videos.find((video) => video.id === videoId));
   }
 
-  async listVideos(query: PageQuery & { category?: VideoCategory; publishedOnly: boolean }) {
+  async listVideos(query: PageQuery & { category?: VideoCategory; instructor?: string; publishedOnly: boolean }) {
     const filtered = this.state.videos
       .filter((video) => (query.category === undefined || video.category === query.category) && (!query.publishedOnly || video.publishedAt !== null))
+      .filter((video) => query.instructor === undefined || video.instructors.includes(query.instructor))
       // 新しいクラスから並べる（公開日の無い下書きは最後）
       .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
     return paginate(filtered, query);
+  }
+
+  async listVideoInstructors() {
+    const counts = new Map<string, number>();
+    for (const video of this.state.videos) {
+      if (video.publishedAt === null) continue;
+      for (const name of video.instructors) counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja"));
+  }
+
+  async setVideoInstructors(videoId: string, instructors: string[]) {
+    const video = this.state.videos.find((item) => item.id === videoId);
+    if (!video) return false;
+    video.instructors = [...instructors];
+    return true;
   }
 
   async listClassRooms() {

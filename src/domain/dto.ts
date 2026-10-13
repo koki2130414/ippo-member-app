@@ -41,6 +41,7 @@ export function toVideoSummary(video: Video): VideoSummary {
     // YouTube の ID だけは渡す。守れない ID を隠しても守ったことにならないため（types.ts の Video.youtubeId 参照）
     youtubeId: video.source === "youtube" ? video.youtubeId : null,
     publishedAt: video.publishedAt,
+    instructors: [...video.instructors],
     viewableOutsideApp: video.source === "youtube",
   };
 }

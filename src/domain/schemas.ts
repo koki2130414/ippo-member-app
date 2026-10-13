@@ -240,4 +240,16 @@ export const exchangeSchema = z.object({
 export const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
   tab: z.string().max(32).optional().catch(undefined),
+  /** 担当コーチの呼び名で絞りこむ（クラス動画） */
+  coach: z.string().trim().min(1).max(30).optional().catch(undefined),
+});
+
+/** 担当コーチの呼び名。「、」「,」区切りの入力を配列にする。空の欄は「担当コーチなし」 */
+export const videoInstructorsSchema = z.object({
+  videoId: z.string().min(1).max(200),
+  instructors: z
+    .string()
+    .max(200)
+    .transform((value) => [...new Set(value.split(/[、,，\n]/).map((name) => name.trim()).filter((name) => name.length > 0))])
+    .pipe(z.array(z.string().max(30, "コーチの呼び名は30文字までにしてください")).max(6, "担当コーチは6人までにしてください")),
 });

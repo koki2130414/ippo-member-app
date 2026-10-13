@@ -7,7 +7,8 @@ import { isGuestUserId } from "@/data/seed/ids";
 import { evaluateAccess } from "./access";
 import type { ServiceContext } from "./context";
 import { ServiceError, invalid, notFound } from "./errors";
-import { requireRole } from "./guards";
+import { requireAdmin, requireRole } from "./guards";
+import { recordAudit } from "./audit";
 import { signMuxPlaybackToken } from "./mux-signing";
 import { awardForOwnAction, type AwardOutcome } from "./points-service";
 
@@ -24,6 +25,8 @@ export const VIDEO_PAGE_SIZE = 12;
 
 export interface VideoListView {
   page: Page<VideoSummary>;
+  /** 担当コーチで絞りこむための一覧（担当した本数の多い順） */
+  instructors: { name: string; count: number }[];
   completedVideoIds: string[];
   access: Entitlement;
 }
@@ -31,16 +34,18 @@ export interface VideoListView {
 export async function listVideosForMember(
   context: ServiceContext,
   actor: Actor | null,
-  query: { category: VideoCategory | undefined; page: number },
+  query: { category: VideoCategory | undefined; instructor?: string | undefined; page: number },
 ): Promise<VideoListView> {
   const member = requireRole(actor, MEMBER_ROLES, "video.list");
-  const [page, access, progress] = await Promise.all([
-    context.store.listVideos({ category: query.category, page: query.page, pageSize: VIDEO_PAGE_SIZE, publishedOnly: true }),
+  const [page, access, progress, instructors] = await Promise.all([
+    context.store.listVideos({ category: query.category, instructor: query.instructor, page: query.page, pageSize: VIDEO_PAGE_SIZE, publishedOnly: true }),
     evaluateAccess(context, member, "classVideos"),
     member.role === "student" ? context.store.listVideoProgress(member.userId) : Promise.resolve([]),
+    context.store.listVideoInstructors(),
   ]);
   return {
     page: { ...page, items: page.items.map(toVideoSummary) },
+    instructors,
     completedVideoIds: progress.filter((item) => item.completedAt !== null).map((item) => item.videoId),
     access,
   };
@@ -145,4 +150,33 @@ export async function completeVideo(context: ServiceContext, actor: Actor | null
   if (!firstTime) return { kind: "already_completed" };
   const points = await awardForOwnAction(context, student, { ruleCode: "video_completed", subject: video.id });
   return { kind: "completed", points };
+}
+
+// --- 運営: 担当コーチの登録 ---
+
+export const ADMIN_VIDEO_PAGE_SIZE = 20;
+
+export interface AdminVideoListView {
+  page: Page<VideoSummary>;
+  instructors: { name: string; count: number }[];
+}
+
+/** 運営の「クラス動画」一覧。担当コーチの入力に使う。未公開の動画も含める */
+export async function listVideosForAdmin(context: ServiceContext, actor: Actor | null, query: { page: number; instructor?: string | undefined }): Promise<AdminVideoListView> {
+  requireAdmin(actor, "video.admin_list");
+  const [page, instructors] = await Promise.all([
+    context.store.listVideos({ page: query.page, pageSize: ADMIN_VIDEO_PAGE_SIZE, publishedOnly: false, instructor: query.instructor }),
+    context.store.listVideoInstructors(),
+  ]);
+  return { page: { ...page, items: page.items.map(toVideoSummary) }, instructors };
+}
+
+/** 動画の担当コーチを書き換える。呼び名だけを持ち、会員アカウントとは結びつけない */
+export async function updateVideoInstructors(context: ServiceContext, actor: Actor | null, input: { videoId: string; instructors: string[] }): Promise<{ instructors: string[] }> {
+  const admin = requireAdmin(actor, "video.update");
+  const updated = await context.store.setVideoInstructors(input.videoId, input.instructors);
+  if (!updated) throw notFound("video.update");
+  // 監査ログには「担当コーチを変えた」ことと人数だけ。名前そのものは入れない
+  await recordAudit(context, admin, { action: "video.update", targetType: "video", targetId: input.videoId, metadata: { field: "instructors", count: input.instructors.length } });
+  return { instructors: input.instructors };
 }

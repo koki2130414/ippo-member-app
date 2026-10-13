@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { listQuerySchema, memberCreateSchema, videoCreateSchema } from "./schemas";
+import { listQuerySchema, memberCreateSchema, videoCreateSchema, videoInstructorsSchema } from "./schemas";
 
 describe("動画登録スキーマ", () => {
   const base = { title: "パスの前にみる", description: "", category: "soccer_iq", durationSeconds: "120" };
@@ -47,5 +47,14 @@ describe("会員追加フォーム", () => {
     const result = memberCreateFormSchema.safeParse({ displayName: "テスト", fullName: "架空", email: "t@example.invalid", role: "coach", planCode: "light", ageBand: "" });
     expect(result.success).toBe(false);
     expect(JSON.stringify(result.error?.issues)).toContain("プランを「なし」にしてください");
+  });
+});
+
+describe("担当コーチの入力", () => {
+  it("「、」やカンマで区切り、空白と重複を取りのぞく。空なら担当なし", () => {
+    expect(videoInstructorsSchema.parse({ videoId: "v", instructors: " しゅうすけコーチ、りゅうコーチ,りゅうコーチ ，" }).instructors).toEqual(["しゅうすけコーチ", "りゅうコーチ"]);
+    expect(videoInstructorsSchema.parse({ videoId: "v", instructors: "" }).instructors).toEqual([]);
+    expect(videoInstructorsSchema.safeParse({ videoId: "v", instructors: "あ".repeat(31) }).success).toBe(false);
+    expect(videoInstructorsSchema.safeParse({ videoId: "v", instructors: "a,b,c,d,e,f,g" }).success).toBe(false);
   });
 });

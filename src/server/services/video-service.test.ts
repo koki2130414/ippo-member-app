@@ -2,7 +2,7 @@ import { generateKeyPairSync, createVerify } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { DEMO_IDS } from "@/data/seed/ids";
 import { createTestContext } from "../../../test/service-context";
-import { completeVideo, getVideoDetail, listVideosForMember, startPlayback } from "./video-service";
+import { completeVideo, getVideoDetail, listVideosForAdmin, listVideosForMember, startPlayback, updateVideoInstructors } from "./video-service";
 
 describe("動画の一覧と詳細", () => {
   it("一覧・詳細は VideoSummary だけを返す（秘密のキーが無い）", async () => {
@@ -147,5 +147,36 @@ describe("見学モード（見学用アカウント）", () => {
   it("見学用アカウントは運営の画面には入れない（ロールは生徒）", async () => {
     const harness = createTestContext({ seed: "empty" });
     expect((await harness.actorOf(DEMO_IDS.guest)).role).toBe("student");
+  });
+});
+
+describe("担当コーチ", () => {
+  it("担当コーチで絞りこめて、コーチの一覧は担当した本数の多い順", async () => {
+    const harness = createTestContext();
+    const student = await harness.actorOf(DEMO_IDS.student);
+    const all = await listVideosForMember(harness.context, student, { category: undefined, page: 1 });
+    expect(all.instructors[0]).toEqual({ name: "荒木コーチ", count: 4 });
+    const araki = await listVideosForMember(harness.context, student, { category: undefined, instructor: "荒木コーチ", page: 1 });
+    expect(araki.page.total).toBe(4);
+    expect(araki.page.items.every((video) => video.instructors.includes("荒木コーチ"))).toBe(true);
+    const both = await listVideosForMember(harness.context, student, { category: "mentality", instructor: "りゅうコーチ", page: 1 });
+    expect(both.page.items.map((video) => video.title)).toEqual(["AIに負けない力とは？／ぶつかっても倒れない姿勢を身につけよう（10/4）"]);
+    expect((await listVideosForMember(harness.context, student, { category: undefined, instructor: "いないコーチ", page: 1 })).page.total).toBe(0);
+  });
+
+  it("運営だけが担当コーチを書き換えられ、監査ログには名前を残さない", async () => {
+    const harness = createTestContext();
+    const admin = await harness.actorOf(DEMO_IDS.admin);
+    const videoId = "video-ippo-bjdmjon3lrg-20260927";
+    for (const userId of [DEMO_IDS.student, DEMO_IDS.guardian, DEMO_IDS.coach]) {
+      await expect(updateVideoInstructors(harness.context, await harness.actorOf(userId), { videoId, instructors: ["x"] })).rejects.toMatchObject({ code: "forbidden" });
+    }
+    await updateVideoInstructors(harness.context, admin, { videoId, instructors: ["ながコーチ"] });
+    const view = await listVideosForAdmin(harness.context, admin, { page: 1, instructor: "ながコーチ" });
+    expect(view.page.total).toBe(2);
+    const log = harness.state.auditLogs.at(-1);
+    expect(log).toMatchObject({ action: "video.update", targetId: videoId, metadata: { field: "instructors", count: 1 } });
+    expect(JSON.stringify(log)).not.toContain("ながコーチ");
+    await expect(updateVideoInstructors(harness.context, admin, { videoId: "no-such-video", instructors: [] })).rejects.toMatchObject({ code: "not_found" });
   });
 });

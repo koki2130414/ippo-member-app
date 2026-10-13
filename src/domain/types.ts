@@ -307,6 +307,11 @@ export interface Video {
    * 代わりに「アプリの外でも見られる」ことを UI で必ず明示する（仕様 9章）。
    */
   youtubeId: string | null;
+  /**
+   * 担当したコーチの呼び名（例: "しゅうすけコーチ"）。メンタリティとフィットネスで別のコーチが担当することがあるので複数。
+   * 会員アカウントとは結びつけない（過去のクラスには、アプリにアカウントの無いコーチもいるため）
+   */
+  instructors: string[];
   publishedAt: IsoDateTime | null;
   createdBy: UserId;
 }

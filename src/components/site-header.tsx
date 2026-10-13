@@ -20,6 +20,7 @@ const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: strin
     { href: "/admin", label: "運営のホーム", testId: "nav-home" },
     { href: "/admin/applications", label: "申し込み", testId: "nav-admin-applications" },
     { href: "/admin/users?tab=members", label: "会員", testId: "nav-admin-users" },
+    { href: "/admin/videos", label: "クラス動画", testId: "nav-admin-videos" },
     { href: "/home", label: "会員画面", testId: "nav-admin-member-view" },
   ],
 };

@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { approveApplicationSchema, issueInvitationSchema, memberCreateFormSchema, planAssignSchema, rejectApplicationSchema, toMemberCreateInput } from "@/domain/schemas";
+import { approveApplicationSchema, issueInvitationSchema, memberCreateFormSchema, planAssignSchema, rejectApplicationSchema, toMemberCreateInput, videoInstructorsSchema } from "@/domain/schemas";
 import { getCurrentActor, getServiceContext } from "../current-actor";
 import { issueAccountInvitation } from "../services/account-service";
 import { issueGuestLink, revokeGuestLink } from "../services/guest-link-service";
 import { assignPlan, createMember } from "../services/members-service";
 import { approveApplication, rejectApplication } from "../services/registration-service";
+import { updateVideoInstructors } from "../services/video-service";
 import { runAction } from "./action-result";
 
 /**
@@ -78,5 +79,18 @@ export async function issueGuestLinkAction() {
 export async function revokeGuestLinkAction() {
   const result = await runAction("guest_link.revoke", async () => revokeGuestLink(getServiceContext(), await getCurrentActor()));
   if (result.ok) revalidatePath("/admin");
+  return result;
+}
+
+/** クラス動画の担当コーチを書き換える */
+export async function updateVideoInstructorsAction(videoId: unknown, instructors: unknown) {
+  const result = await runAction("video.update", async () => {
+    const input = videoInstructorsSchema.parse({ videoId, instructors });
+    return updateVideoInstructors(getServiceContext(), await getCurrentActor(), input);
+  });
+  if (result.ok) {
+    revalidatePath("/videos");
+    revalidatePath("/admin/videos");
+  }
   return result;
 }

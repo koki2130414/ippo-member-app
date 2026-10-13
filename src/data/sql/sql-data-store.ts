@@ -144,6 +144,7 @@ function toVideo(row: Row): Video {
     storageKey: textOrNull(row, "storage_key"),
     muxPlaybackId: textOrNull(row, "mux_playback_id"),
     youtubeId: textOrNull(row, "youtube_id"),
+    instructors: parseJsonColumn.textArray(row.instructors),
     publishedAt: isoOrNull(row, "published_at"),
     createdBy: text(row, "created_by"),
   };
@@ -565,15 +566,27 @@ export class SqlDataStore implements DataStore {
     return row ? toVideo(row) : null;
   }
 
-  async listVideos(query: PageQuery & { category?: VideoCategory; publishedOnly: boolean }): Promise<Page<Video>> {
+  async listVideos(query: PageQuery & { category?: VideoCategory; instructor?: string; publishedOnly: boolean }): Promise<Page<Video>> {
     const { limit, offset, page, pageSize } = pageBounds(query);
-    const where = "($1::text is null or category = $1) and (not $2::boolean or published_at is not null)";
-    const params = [query.category ?? null, query.publishedOnly];
+    const where = "($1::text is null or category = $1) and (not $2::boolean or published_at is not null) and ($3::text is null or instructors @> jsonb_build_array($3::text))";
+    const params = [query.category ?? null, query.publishedOnly, query.instructor ?? null];
     const [rows, total] = await Promise.all([
       this.rows(`select * from videos where ${where} order by published_at desc nulls last, id limit ${limit} offset ${offset}`, params),
       this.count(`select count(*)::int as count from videos where ${where}`, params),
     ]);
     return { items: rows.map(toVideo), total, page, pageSize };
+  }
+
+  async listVideoInstructors() {
+    const rows = await this.rows(
+      `select name, count(*)::int as count from videos, jsonb_array_elements_text(instructors) as name
+       where published_at is not null group by name order by count desc, name`,
+    );
+    return rows.map((row) => ({ name: text(row, "name"), count: num(row, "count") }));
+  }
+
+  async setVideoInstructors(videoId: string, instructors: string[]) {
+    return (await this.rows("update videos set instructors = $2::jsonb where id = $1 returning id", [videoId, instructors])).length === 1;
   }
 
   async listClassRooms(): Promise<ClassRoom[]> {

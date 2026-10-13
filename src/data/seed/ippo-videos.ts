@@ -25,6 +25,11 @@ interface IppoVideoRow {
   themes: string[];
   /** 動画の事情など、生徒に知らせたい補足 */
   note?: string;
+  /**
+   * 担当コーチの呼び名。YouTube の説明欄（「担当コーチからのコメント」）と、運営の「クラス資料一覧」の「授業作成者」から。
+   * 分からない回は空。運営が管理画面の「クラス動画」で入れ直せる
+   */
+  instructors?: string[];
 }
 
 const ROWS: IppoVideoRow[] = [
@@ -47,11 +52,11 @@ const ROWS: IppoVideoRow[] = [
   { youtubeId: "HGOmkwuSLCg", classDate: "2026-07-22", kind: "soccer_iq", durationSeconds: 3646, themes: [] },
   { youtubeId: "3-hovib6qtI", classDate: "2026-07-20", kind: "mentality_fitness", durationSeconds: 3668, themes: ["こころの使い方を学ぼう", "正しいお腹の力の入れ方を覚えよう"] },
   { youtubeId: "QJriQAKN9uY", classDate: "2026-07-12", kind: "soccer_iq", durationSeconds: 3650, themes: ["見えないところで差をつけろ〜オフザボールの準備〜"] },
-  { youtubeId: "8oYmQURLKT8", classDate: "2026-07-08", kind: "soccer_iq", durationSeconds: 3657, themes: ["見えないところで差をつけろ〜オフザボールの準備〜"] },
+  { youtubeId: "8oYmQURLKT8", classDate: "2026-07-08", kind: "soccer_iq", durationSeconds: 3657, themes: ["見えないところで差をつけろ〜オフザボールの準備〜"], instructors: ["ながコーチ"] },
   { youtubeId: "QGPWtPyUR0Q", classDate: "2026-07-05", kind: "mentality_fitness", durationSeconds: 3654, themes: ["強みを持つこと", "股関節の可動域を広げよう"] },
   { youtubeId: "elzTLHjY75k", classDate: "2026-06-28", kind: "soccer_iq", durationSeconds: 3606, themes: ["つなぐとける〜ゴールキックのコツ〜"] },
   { youtubeId: "lge_ySQpLtg", classDate: "2026-06-24", kind: "soccer_iq", durationSeconds: 3557, themes: [] },
-  { youtubeId: "sWJVXRXeMKY", classDate: "2026-06-21", kind: "mentality_fitness", durationSeconds: 3631, themes: ["準備について考えよう！", "キック力を高めよう！"] },
+  { youtubeId: "sWJVXRXeMKY", classDate: "2026-06-21", kind: "mentality_fitness", durationSeconds: 3631, themes: ["準備について考えよう！", "キック力を高めよう！"], instructors: ["げんちコーチ"] },
   { youtubeId: "vIxeq4d89xI", classDate: "2026-06-17", kind: "other", durationSeconds: 7517, themes: [] },
   { youtubeId: "mVNITYF9M7E", classDate: "2026-06-14", kind: "soccer_iq", durationSeconds: 3560, themes: [] },
   { youtubeId: "UPyBYa6WTG8", classDate: "2026-06-10", kind: "soccer_iq", durationSeconds: 3568, themes: ["これでもう困らない！ゴールキックのコツ"] },
@@ -59,7 +64,7 @@ const ROWS: IppoVideoRow[] = [
   { youtubeId: "Afe9AgkWC00", classDate: "2026-05-27", kind: "soccer_iq", durationSeconds: 3553, themes: ["コーナーキックで点を取らせない！〜コーナーキックの守備〜"] },
   { youtubeId: "IEHLqIvQu4I", classDate: "2026-05-24", kind: "soccer_iq", durationSeconds: 3537, themes: ["コーナーキックで点を取らせない！〜コーナーキックの守備〜"] },
   { youtubeId: "JI4bFlV-6nI", classDate: "2026-05-24", kind: "seminar", durationSeconds: 3474, themes: ["小川選手セミナー"] },
-  { youtubeId: "GLAsLKO1MQw", classDate: "2026-05-19", kind: "mentality", durationSeconds: 594, themes: ["\"なぜ？\"を考え続けることの大事さ"], note: "クラスの録画ができなかったため、岡田コーチが同じ内容を撮り直した動画です。クラス当日と少しちがうところがあります。" },
+  { youtubeId: "GLAsLKO1MQw", classDate: "2026-05-19", kind: "mentality", durationSeconds: 594, themes: ["\"なぜ？\"を考え続けることの大事さ"], note: "クラスの録画ができなかったため、岡田コーチが同じ内容を撮り直した動画です。クラス当日と少しちがうところがあります。", instructors: ["岡田コーチ"] },
   { youtubeId: "HmOKd0RRYL8", classDate: "2026-05-17", kind: "fitness", durationSeconds: 1035, themes: ["サッカーの動きを全部つなげよう！"] },
   { youtubeId: "Eh6NxtRXnis", classDate: "2026-05-13", kind: "soccer_iq", durationSeconds: 3528, themes: ["コーナーキックから点を取ろう！"] },
   { youtubeId: "5AHh5y-I4Z8", classDate: "2026-05-10", kind: "soccer_iq", durationSeconds: 3627, themes: ["コーナーキックから点を取ろう！"] },
@@ -73,7 +78,7 @@ const ROWS: IppoVideoRow[] = [
   { youtubeId: "2bK7pf74P1g", classDate: "2026-04-08", kind: "soccer_iq", durationSeconds: 3516, themes: ["ピンチはいきなりやってくる！〜ディフェンシブサードでの攻撃→守備〜"] },
   { youtubeId: "Xkf0dys5yDk", classDate: "2026-04-05", kind: "mentality_fitness", durationSeconds: 3438, themes: ["良い声かけ良いコミュニケーション", "止まれる体が、次の一歩を速くする"] },
   // ここから下は運営の「クラス資料一覧」（Notion・日曜クラス）から追加（2026-10-13）。長さは YouTube の動画情報から
-  { youtubeId: "9FDo2BOBfUc", classDate: "2026-10-04", kind: "mentality_fitness", durationSeconds: 3593, themes: ["AIに負けない力とは？", "ぶつかっても倒れない姿勢を身につけよう"] },
+  { youtubeId: "9FDo2BOBfUc", classDate: "2026-10-04", kind: "mentality_fitness", durationSeconds: 3593, themes: ["AIに負けない力とは？", "ぶつかっても倒れない姿勢を身につけよう"], instructors: ["しゅうすけコーチ", "りゅうコーチ"] },
   { youtubeId: "hhdFtjffQOs", classDate: "2026-03-01", kind: "mentality_fitness", durationSeconds: 3524, themes: ["環境にこだわる", "姿勢とリズムでパワーを作ろう"] },
   { youtubeId: "grLwbA5lpOw", classDate: "2026-02-15", kind: "mentality_fitness", durationSeconds: 3759, themes: ["いま出せる力の100%を出す", "ぐらぐらゼロの足づくり"] },
   { youtubeId: "HwIezcNDu0E", classDate: "2026-02-01", kind: "mentality_fitness", durationSeconds: 3695, themes: ["ゴミを拾える人になろう", "肩甲骨と体幹で当たり負けしない体を作ろう"] },
@@ -101,11 +106,11 @@ const ROWS: IppoVideoRow[] = [
   { youtubeId: "3zyWmJKHH08", classDate: "2025-02-02", kind: "mentality_fitness", durationSeconds: 3687, themes: ["準備について考えよう！", "ぶつかる動きを習得しよう"] },
   { youtubeId: "4KhYoEVH8ac", classDate: "2025-01-19", kind: "mentality_fitness", durationSeconds: 3678, themes: ["オフザピッチがサッカーを上手くする", "ぶつかる動きを習得しよう"] },
   { youtubeId: "vA7fOPYbirU", classDate: "2025-01-05", kind: "mentality_fitness", durationSeconds: 3625, themes: ["声を出そう", "体幹を安定させよう"], note: "はじめての方におすすめの回です。" },
-  { youtubeId: "iKFyoYii0Lk", classDate: "2024-12-15", kind: "mentality_fitness", durationSeconds: 3626, themes: ["次の行動を決めること！", "ぶつかっても倒れない姿勢を身につけよう"] },
+  { youtubeId: "iKFyoYii0Lk", classDate: "2024-12-15", kind: "mentality_fitness", durationSeconds: 3626, themes: ["次の行動を決めること！", "ぶつかっても倒れない姿勢を身につけよう"], instructors: ["荒木コーチ"] },
   { youtubeId: "H0Guz_cvR_w", classDate: "2024-12-01", kind: "mentality_fitness", durationSeconds: 3818, themes: ["自分を分析しよう", "自由自在に止まって動けるようになろう"] },
-  { youtubeId: "CDSJlqCgGpY", classDate: "2024-11-17", kind: "mentality_fitness", durationSeconds: 3629, themes: ["チャンスってなに？", "自由自在に止まって動けるようになろう"] },
-  { youtubeId: "kZac053UKJE", classDate: "2024-10-20", kind: "mentality_fitness", durationSeconds: 3508, themes: ["環境にこだわる", "相手に合わせて止まる練習しよう"] },
-  { youtubeId: "Dp-lsc5bFEo", classDate: "2024-10-06", kind: "mentality_fitness", durationSeconds: 3651, themes: ["一流の逆境力", "止まってからすぐに動こう"] },
+  { youtubeId: "CDSJlqCgGpY", classDate: "2024-11-17", kind: "mentality_fitness", durationSeconds: 3629, themes: ["チャンスってなに？", "自由自在に止まって動けるようになろう"], instructors: ["荒木コーチ"] },
+  { youtubeId: "kZac053UKJE", classDate: "2024-10-20", kind: "mentality_fitness", durationSeconds: 3508, themes: ["環境にこだわる", "相手に合わせて止まる練習しよう"], instructors: ["荒木コーチ"] },
+  { youtubeId: "Dp-lsc5bFEo", classDate: "2024-10-06", kind: "mentality_fitness", durationSeconds: 3651, themes: ["一流の逆境力", "止まってからすぐに動こう"], instructors: ["原コーチ"] },
   { youtubeId: "6XdcYWWgu3E", classDate: "2026-03-15", kind: "mentality", durationSeconds: 3170, themes: ["アスリートのための睡眠講習会"], note: "拡大版の特別講座です。" },
   { youtubeId: "2deADzTtAT4", classDate: "2026-03-15", kind: "fitness", durationSeconds: 1853, themes: ["速い一歩は”姿勢”から"] },
   { youtubeId: "g9EVomZJaKk", classDate: "2025-04-20", kind: "mentality", durationSeconds: 1639, themes: ["リーダーシップを身につけよう"] },
@@ -114,7 +119,7 @@ const ROWS: IppoVideoRow[] = [
   { youtubeId: "TMiL5ZJTJZY", classDate: "2025-06-01", kind: "fitness", durationSeconds: 1637, themes: ["思った通りに股関節を動かそう３"] },
   { youtubeId: "gcZZALdt1Ms", classDate: "2024-11-03", kind: "mentality_fitness", durationSeconds: 3854, themes: ["スポーツが生き抜く力を育む", "いつでも動けるように止まろう"], note: "フィットネスの前半です。トライの説明と講話は別の動画です。" },
   { youtubeId: "K3Yy8OKOa3I", classDate: "2024-11-03", kind: "mentality", durationSeconds: 1734, themes: ["スポーツが生き抜く力を育む"], note: "トライの説明と講話の動画です。" },
-  { youtubeId: "KdDe3O-AHa4", classDate: "2024-09-15", kind: "mentality", durationSeconds: 1438, themes: ["結果っていつ出る？"] },
+  { youtubeId: "KdDe3O-AHa4", classDate: "2024-09-15", kind: "mentality", durationSeconds: 1438, themes: ["結果っていつ出る？"], instructors: ["荒木コーチ"] },
   { youtubeId: "qFR7MipIBH0", classDate: "2024-09-15", kind: "fitness", durationSeconds: 2198, themes: ["動きから止まる感覚を養おう"] },
 ];
 
@@ -167,6 +172,7 @@ function toVideo(row: IppoVideoRow): Video {
     storageKey: null,
     muxPlaybackId: null,
     // 並び順に使う。クラスの開催日の 10:00（JST）
+    instructors: row.instructors ?? [],
     publishedAt: `${row.classDate}T01:00:00.000Z`,
     createdBy: DEMO_IDS.admin,
   };

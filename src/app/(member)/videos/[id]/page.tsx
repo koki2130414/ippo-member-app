@@ -26,6 +26,17 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
       <div>
         <h1 className="text-2xl font-bold">{video.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{formatDuration(video.durationSeconds)}</p>
+        {video.instructors.length > 0 ? (
+          <p className="mt-1 text-sm" data-testid="video-coach">
+            担当:{" "}
+            {video.instructors.map((name, index) => (
+              <span key={name}>
+                {index > 0 ? "・" : null}
+                <Link href={`/videos?coach=${encodeURIComponent(name)}`} className="font-semibold text-link underline" data-testid="video-coach-link">{name}</Link>
+              </span>
+            ))}
+          </p>
+        ) : null}
       </div>
 
 

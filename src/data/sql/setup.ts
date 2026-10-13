@@ -74,9 +74,9 @@ export async function seedBaseContent(client: SqlClient): Promise<void> {
     }
     for (const video of BASE_VIDEOS) {
       await tx.query(
-        `insert into videos (id, title, description, category, duration_seconds, source, storage_key, mux_playback_id, youtube_id, published_at, created_by)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) on conflict (id) do nothing`,
-        [video.id, video.title, video.description, video.category, video.durationSeconds, video.source, video.storageKey, video.muxPlaybackId, video.youtubeId, video.publishedAt, "system"],
+        `insert into videos (id, title, description, category, duration_seconds, source, storage_key, mux_playback_id, youtube_id, published_at, created_by, instructors)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb) on conflict (id) do nothing`,
+        [video.id, video.title, video.description, video.category, video.durationSeconds, video.source, video.storageKey, video.muxPlaybackId, video.youtubeId, video.publishedAt, "system", video.instructors],
       );
     }
   });

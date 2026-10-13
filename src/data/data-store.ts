@@ -149,7 +149,11 @@ export interface DataStore {
 
   // --- コンテンツ（Phase 3 以降で増やす） ---
   getVideo(videoId: string): Promise<Video | null>;
-  listVideos(query: PageQuery & { category?: VideoCategory; publishedOnly: boolean }): Promise<Page<Video>>;
+  listVideos(query: PageQuery & { category?: VideoCategory; instructor?: string; publishedOnly: boolean }): Promise<Page<Video>>;
+  /** 公開中の動画に出てくる担当コーチの呼び名（担当した本数の多い順） */
+  listVideoInstructors(): Promise<{ name: string; count: number }[]>;
+  /** 担当コーチを書き換える。動画が無ければ false */
+  setVideoInstructors(videoId: string, instructors: string[]): Promise<boolean>;
   listClassRooms(): Promise<ClassRoom[]>;
   listLectureCategories(): Promise<LectureCategory[]>;
   listLectures(query: PageQuery & { categoryId?: string; publishedOnly: boolean }): Promise<Page<Lecture>>;

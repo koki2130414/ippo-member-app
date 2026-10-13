@@ -9,7 +9,7 @@ function serialized(value: unknown): string {
 
 const baseVideo: Video = {
   id: "v1", title: "t", description: "d", category: "soccer_iq", durationSeconds: 60,
-  source: "mux", storageKey: "videos/secret.mp4", muxPlaybackId: "SECRETPLAYBACKID123", youtubeId: null,
+  source: "mux", storageKey: "videos/secret.mp4", muxPlaybackId: "SECRETPLAYBACKID123", youtubeId: null, instructors: [],
   publishedAt: "2026-09-01T00:00:00Z", createdBy: "admin-1",
 };
 

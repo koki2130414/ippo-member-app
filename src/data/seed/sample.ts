@@ -90,6 +90,7 @@ export function createSampleSeed(): MockState {
       storageKey: "class-videos/sample/look-before-receive.mp4",
       muxPlaybackId: null,
       youtubeId: null,
+      instructors: [],
       publishedAt: SEED_CREATED_AT,
       createdBy: DEMO_IDS.admin,
     },
@@ -103,6 +104,7 @@ export function createSampleSeed(): MockState {
       muxPlaybackId: "SampleSignedPlaybackId0001",
       storageKey: null,
       youtubeId: null,
+      instructors: [],
       publishedAt: SEED_CREATED_AT,
       createdBy: DEMO_IDS.admin,
     },
@@ -115,6 +117,7 @@ export function createSampleSeed(): MockState {
       source: "youtube",
       // YouTube の開発者向けドキュメントで例として使われている動画ID（IPPO の動画ではない。画面確認用）
       youtubeId: "M7lc1UVf-VE",
+      instructors: [],
       storageKey: null,
       muxPlaybackId: null,
       publishedAt: SEED_CREATED_AT,

@@ -182,3 +182,17 @@ describe("見学リンク（SQL）", () => {
     await expect(client.query("insert into guest_links (id, token_hash, created_by, created_at) values ('b', 'h2', 'x', now())")).rejects.toThrow();
   });
 });
+
+describe("担当コーチ（SQL）", () => {
+  it("絞りこみ・一覧・書き換えが本番と同じSQLで動く", async () => {
+    const store = new SqlDataStore(client);
+    const araki = await store.listVideos({ page: 1, pageSize: 50, publishedOnly: true, instructor: "荒木コーチ" });
+    expect(araki.total).toBe(4);
+    const names = await store.listVideoInstructors();
+    expect(names[0]).toEqual({ name: "荒木コーチ", count: 4 });
+    expect(await store.setVideoInstructors("video-ippo-bjdmjon3lrg-20260927", ["ながコーチ"])).toBe(true);
+    expect((await store.getVideo("video-ippo-bjdmjon3lrg-20260927"))?.instructors).toEqual(["ながコーチ"]);
+    expect((await store.listVideos({ page: 1, pageSize: 50, publishedOnly: true, instructor: "ながコーチ" })).total).toBe(2);
+    expect(await store.setVideoInstructors("no-such-video", [])).toBe(false);
+  });
+});

@@ -24,7 +24,8 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
   const query = listQuerySchema.parse(await searchParams);
   // 知らないタブ名は「すべて」として扱う（URL は誰でも書き換えられるので）
   const category = parseCategory(query.tab);
-  const view = await loadForPage(() => listVideosForMember(getServiceContext(), actor, { category, page: query.page }));
+  const coach = query.coach;
+  const view = await loadForPage(() => listVideosForMember(getServiceContext(), actor, { category, instructor: coach, page: query.page }));
   const completed = new Set(view.completedVideoIds);
 
   return (
@@ -37,12 +38,27 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
         testIdPrefix="video-category"
         current={category}
         tabs={[{ value: undefined, label: "すべて" }, ...VIDEO_CATEGORIES.map((value) => ({ value, label: VIDEO_CATEGORY_LABELS[value] }))]}
+        extraQuery={{ coach }}
       />
+      {view.instructors.length > 0 ? (
+        <div className="space-y-1">
+          <p className="text-sm font-bold" id="coach-filter-label">担当コーチでさがす</p>
+          <QueryTabs
+            basePath="/videos"
+            label="担当コーチ"
+            testIdPrefix="video-coach"
+            param="coach"
+            current={coach}
+            tabs={[{ value: undefined, label: "全員" }, ...view.instructors.map((item) => ({ value: item.name, label: `${item.name}（${item.count}）` }))]}
+            extraQuery={{ tab: category }}
+          />
+        </div>
+      ) : null}
 
       {view.access.status !== "available" ? <EntitlementNotice message={describeEntitlement(view.access)} testId="videos-entitlement" /> : null}
 
       {view.page.items.length === 0 ? (
-        <p className="text-muted-foreground" data-testid="videos-empty">このカテゴリーの動画は、まだありません。ほかのカテゴリーも見てみよう。</p>
+        <p className="text-muted-foreground" data-testid="videos-empty">{coach ? `${coach}の動画は、このカテゴリーにはまだありません。` : "このカテゴリーの動画は、まだありません。"}ほかのカテゴリーも見てみよう。</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2" data-testid="video-list">
           {view.page.items.map((video) => (
@@ -53,6 +69,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
                   <span>{formatDuration(video.durationSeconds)}</span>
                 </div>
                 <p className="mt-1 font-semibold">{video.title}</p>
+                {video.instructors.length > 0 ? <p className="mt-1 text-sm font-semibold text-link" data-testid="video-card-coach">担当: {video.instructors.join("・")}</p> : null}
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{video.description}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs">
                   {completed.has(video.id) ? <span className="rounded-full bg-success/10 px-2 py-0.5 font-semibold text-success">見おわった</span> : null}
@@ -63,7 +80,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
         </ul>
       )}
 
-      <Pagination basePath="/videos" page={view.page.page} pageSize={view.page.pageSize} total={view.page.total} extraQuery={{ tab: category }} />
+      <Pagination basePath="/videos" page={view.page.page} pageSize={view.page.pageSize} total={view.page.total} extraQuery={{ tab: category, coach }} />
     </main>
   );
 }

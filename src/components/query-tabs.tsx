@@ -11,7 +11,32 @@ export interface QueryTab {
  * タブは URL のクエリで持つ（仕様 10.3）。直リンクで同じ状態を再現でき、自動操作もリンクをたどるだけで切り替えられる。
  * タブを切り替えたらページは1に戻す（前のタブの3ページ目、のような存在しない状態を作らない）。
  */
-export function QueryTabs({ basePath, tabs, current, testIdPrefix, label }: { basePath: string; tabs: QueryTab[]; current: string | undefined; testIdPrefix: string; label: string }) {
+export function QueryTabs({
+  basePath,
+  tabs,
+  current,
+  testIdPrefix,
+  label,
+  extraQuery = {},
+  param = "tab",
+}: {
+  basePath: string;
+  tabs: QueryTab[];
+  current: string | undefined;
+  testIdPrefix: string;
+  label: string;
+  /** タブを切り替えても残したいほかの絞りこみ（例: クラス動画のカテゴリーと担当コーチ） */
+  extraQuery?: Record<string, string | undefined>;
+  /** URL のどのクエリに入れるか（既定は ?tab=） */
+  param?: string;
+}) {
+  const hrefFor = (value: string | undefined) => {
+    const params = new URLSearchParams();
+    for (const [key, extra] of Object.entries(extraQuery)) if (extra && key !== param) params.set(key, extra);
+    if (value) params.set(param, value);
+    const query = params.toString();
+    return query ? `${basePath}?${query}` : basePath;
+  };
   return (
     <nav aria-label={label} className="-mx-4 overflow-x-auto px-4">
       <ul className="flex gap-2">
@@ -20,7 +45,7 @@ export function QueryTabs({ basePath, tabs, current, testIdPrefix, label }: { ba
           return (
             <li key={tab.value ?? "all"}>
               <Link
-                href={tab.value ? `${basePath}?tab=${encodeURIComponent(tab.value)}` : basePath}
+                href={hrefFor(tab.value)}
                 aria-current={active ? "page" : undefined}
                 data-testid={`${testIdPrefix}-tab`}
                 data-tab={tab.value ?? "all"}

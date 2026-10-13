@@ -26,6 +26,12 @@ export default async function AdminHomePage() {
             <p className="text-sm text-muted-foreground">会員の追加・プランの割り当て・ログイン用リンク</p>
           </Link>
         </li>
+        <li>
+          <Link href="/admin/videos" data-testid="admin-go-videos" className="block rounded-lg border border-border p-4 hover:bg-muted">
+            <p className="font-semibold">クラス動画の管理</p>
+            <p className="text-sm text-muted-foreground">担当したコーチの登録（会員はコーチ別に動画を見られます）</p>
+          </Link>
+        </li>
       </ul>
       <GuestLinkPanel active={guestLink.active} createdAt={guestLink.createdAt} />
       <p className="text-sm text-muted-foreground">動画・講義・お知らせなどの管理画面は準備中です（Phase 5）。</p>
