@@ -59,7 +59,7 @@ describe("データベースの準備", () => {
     await seedBaseContent(client);
     const [videos] = await client.query<{ count: number }>("select count(*)::int as count from videos");
     const [plans] = await client.query<{ count: number }>("select count(*)::int as count from plans");
-    expect(videos?.count).toBe(85);
+    expect(videos?.count).toBe(148);
     expect(plans?.count).toBe(5);
   });
 
@@ -99,7 +99,7 @@ describe("ログイン（SQL 版）", () => {
     const studentActor = await loadActor(context, student.userId);
     const list = await listVideosForMember(context, studentActor, { category: undefined, page: 1 });
     expect(list.access.status).toBe("available");
-    expect(list.page.total).toBe(85);
+    expect(list.page.total).toBe(148);
     expect(list.page.items[0]?.title).toContain("（10/4）");
     expect((await startPlayback(context, studentActor, list.page.items[0]?.id ?? "")).grant.kind).toBe("youtube");
 
@@ -189,10 +189,11 @@ describe("担当コーチ（SQL）", () => {
     const araki = await store.listVideos({ page: 1, pageSize: 50, publishedOnly: true, instructor: "荒木コーチ" });
     expect(araki.total).toBe(4);
     const names = await store.listVideoInstructors();
-    expect(names[0]).toEqual({ name: "荒木コーチ", count: 4 });
+    expect(names[0]?.name).toBe("長坂コーチ");
+    expect(names).toContainEqual({ name: "荒木コーチ", count: 4 });
     expect(await store.setVideoInstructors("video-ippo-bjdmjon3lrg-20260927", ["ながコーチ"])).toBe(true);
     expect((await store.getVideo("video-ippo-bjdmjon3lrg-20260927"))?.instructors).toEqual(["ながコーチ"]);
-    expect((await store.listVideos({ page: 1, pageSize: 50, publishedOnly: true, instructor: "ながコーチ" })).total).toBe(2);
+    expect((await store.listVideos({ page: 1, pageSize: 50, publishedOnly: true, instructor: "ながコーチ" })).total).toBe(1);
     expect(await store.setVideoInstructors("no-such-video", [])).toBe(false);
   });
 });

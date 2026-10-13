@@ -133,7 +133,7 @@ describe("見学モード（見学用アカウント）", () => {
     const guest = await harness.actorOf(DEMO_IDS.guest);
     const list = await listVideosForMember(harness.context, guest, { category: undefined, page: 1 });
     expect(list.access.status).toBe("available");
-    expect(list.page.total).toBe(85);
+    expect(list.page.total).toBe(148);
 
     const videoId = list.page.items[0]?.id ?? "";
     expect((await getVideoDetail(harness.context, guest, videoId)).canEarnPoints).toBe(false);
@@ -155,7 +155,8 @@ describe("担当コーチ", () => {
     const harness = createTestContext();
     const student = await harness.actorOf(DEMO_IDS.student);
     const all = await listVideosForMember(harness.context, student, { category: undefined, page: 1 });
-    expect(all.instructors[0]).toEqual({ name: "荒木コーチ", count: 4 });
+    expect(all.instructors[0]?.name).toBe("長坂コーチ");
+    expect(all.instructors).toContainEqual({ name: "荒木コーチ", count: 4 });
     const araki = await listVideosForMember(harness.context, student, { category: undefined, instructor: "荒木コーチ", page: 1 });
     expect(araki.page.total).toBe(4);
     expect(araki.page.items.every((video) => video.instructors.includes("荒木コーチ"))).toBe(true);
@@ -173,7 +174,7 @@ describe("担当コーチ", () => {
     }
     await updateVideoInstructors(harness.context, admin, { videoId, instructors: ["ながコーチ"] });
     const view = await listVideosForAdmin(harness.context, admin, { page: 1, instructor: "ながコーチ" });
-    expect(view.page.total).toBe(2);
+    expect(view.page.total).toBe(1);
     const log = harness.state.auditLogs.at(-1);
     expect(log).toMatchObject({ action: "video.update", targetId: videoId, metadata: { field: "instructors", count: 1 } });
     expect(JSON.stringify(log)).not.toContain("ながコーチ");

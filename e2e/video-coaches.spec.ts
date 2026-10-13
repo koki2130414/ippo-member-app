@@ -30,7 +30,7 @@ test("運営が担当コーチを入れると、会員の一覧に出る", async
   const admin = await adminContext.newPage();
   await admin.goto("/admin");
   await admin.getByTestId("nav-admin-videos").click();
-  const row = admin.getByTestId("admin-video-row").filter({ hasText: "攻撃ってなにをすればいいの？" });
+  const row = admin.getByTestId("admin-video-row").filter({ hasText: "ポジション別②〜（9/27）" });
   await row.getByTestId("admin-video-coach-input").fill("てすとコーチ、 てすとコーチ");
   await row.getByTestId("admin-video-coach-save").click();
   await expect(row.getByTestId("admin-video-coach-result")).toHaveText("保存しました");
