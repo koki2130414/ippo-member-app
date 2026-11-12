@@ -11,6 +11,7 @@ import type { SqlClient } from "./sql-client";
  * - max を小さく … サーバーレスは同時にたくさん起動するので、1つあたりの接続数を絞ってプールを食いつぶさない
  *
  * 2026-11-12: 画面が固まる（リクエストが300秒のタイムアウトまで返らない）問題への対策。
+ *   0. max_pipeline: 1（下の createSql を参照）
  * Vercel の関数は、レスポンスを返すと一時停止される。そのとき開いていた接続は、再開したときには相手側で切られていて、
  * そこにクエリを送ると返事が来ないまま待ち続ける。そこで
  *   1. クエリのあと、アイドル接続が閉じるまで（IDLE_SECONDS + 少し）関数を生かしておく（waitUntil）。
@@ -54,12 +55,20 @@ function finishIdleWait(entry: { resolve: () => void }): void {
   entry.resolve();
 }
 
+/**
+ * 1本の接続に複数のクエリを重ねて送らない（postgres.js の既定は100件まで重ねる）。
+ * Supabase のプーラー（Supavisor・トランザクションモード）は、重ねて送ったクエリへの返事が返らないことがある（画面が固まった原因）。
+ * postgres.js の型定義に無いオプションなので、ここで別に渡す
+ */
+const PIPELINE_OPTIONS: Record<string, number> = { max_pipeline: 1 };
+
 function createSql(rawUrl: string): Sql {
   const { url, ssl } = normalizeDatabaseUrl(rawUrl);
   return postgres(url, {
     prepare: false,
     types: { json: POSTGRES_JSON_TYPE },
     max: 3,
+    ...PIPELINE_OPTIONS,
     idle_timeout: IDLE_SECONDS,
     max_lifetime: 60 * 5,
     connect_timeout: 10,
