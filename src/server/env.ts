@@ -9,7 +9,8 @@ import "server-only";
 export type SeedKind = "empty" | "sample";
 
 export function databaseUrl(): string | null {
-  return process.env.POSTGRES_URL || process.env.DATABASE_URL || null;
+  // 2026-11-12: データベースを東京（Supabase・ap-northeast-1）へ移した。TOKYO_ が付いたものを最優先にする
+  return process.env.TOKYO_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || null;
 }
 
 export function isDemoMode(): boolean {
