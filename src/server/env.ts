@@ -9,8 +9,17 @@ import "server-only";
 export type SeedKind = "empty" | "sample";
 
 export function databaseUrl(): string | null {
-  // 2026-11-12: データベースを東京（Supabase・ap-northeast-1）へ移した。TOKYO_ が付いたものを最優先にする
-  return process.env.TOKYO_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || null;
+  // 2026-11-12: データベースを東京（Supabase・ap-northeast-1）へ移した。TOKYO_ が付いたものを最優先にする。
+  // プーラーのトランザクションモード（TOKYO_POSTGRES_URL・6543番）では、ふつうのクエリが返ってこないことが続いた
+  // （画面が固まった原因）。セッションモード（*_NON_POOLING・5432番）は、ビルド時の準備でも問題なく動いているのでこちらを使う
+  return (
+    process.env.TOKYO_POSTGRES_URL_NON_POOLING ||
+    process.env.TOKYO_POSTGRES_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
+    null
+  );
 }
 
 export function isDemoMode(): boolean {
