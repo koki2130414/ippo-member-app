@@ -1,6 +1,7 @@
 import "server-only";
 import { waitUntil } from "@vercel/functions";
 import postgres from "postgres";
+import { logger } from "@/server/logger";
 import { normalizeDatabaseUrl, POSTGRES_JSON_TYPE, toSqlParams } from "./postgres-shared";
 import type { SqlClient } from "./sql-client";
 
@@ -111,13 +112,20 @@ async function withTimeout<T>(work: Promise<T>): Promise<T> {
 
 const isReadOnly = (text: string) => /^\s*(select|with)\b/i.test(text) && !/\b(insert|update|delete)\b/i.test(text);
 
+/** どのクエリが遅いかを調べるため、SQL の先頭だけを残す（パラメータ＝個人の値は入れない） */
+const sqlHead = (text: string) => text.replace(/\s+/g, " ").trim().slice(0, 90);
+
 async function runQuery<T>(text: string, params: readonly unknown[] = []): Promise<T[]> {
   const sql = currentSql();
+  const started = Date.now();
   try {
     const rows = await withTimeout(sql.unsafe<T[]>(text, toSqlParams(params)));
+    const ms = Date.now() - started;
+    if (ms > 2000) logger.warn("遅いクエリ", { sql: sqlHead(text), ms });
     return [...rows];
   } catch (error) {
     if (!(error instanceof QueryTimeoutError)) throw error;
+    logger.warn("クエリが返ってこないので打ち切り", { sql: sqlHead(text), ms: Date.now() - started });
     resetPool(sql);
     // 書きこみは、相手に届いたかどうか分からないので、やりなおさない（二重に記録しないため）
     if (!isReadOnly(text)) throw error;
