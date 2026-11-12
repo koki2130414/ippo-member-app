@@ -148,6 +148,8 @@ export function rolesAllowedForPath(pathname: string): readonly UserRole[] | "pu
   // どのロールでも使う画面。/forbidden を特定ロールに絞ると、弾かれた人の行き先が無くなって転送が循環する
   const everyRolePaths = ["/forbidden", "/onboarding", "/settings", "/announcements", "/notifications", "/chat"];
   if (everyRolePaths.some(matches)) return USER_ROLES;
+  // カルテは4つのロールが使う。だれのカルテを見られるかはサービス層で判定する
+  if (matches("/karte")) return USER_ROLES;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return ["admin"];
   if (pathname === "/coach" || pathname.startsWith("/coach/")) return ["coach"];
   if (pathname === "/guardian" || pathname.startsWith("/guardian/")) return ["guardian"];

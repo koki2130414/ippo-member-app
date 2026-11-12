@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { PASSWORD_MIN_LENGTH } from "./registration";
-import { AGE_BANDS, ATTENDANCE_STATUSES, GRADES, PLAN_CODES, PREFECTURES, USER_ROLES, VIDEO_CATEGORIES } from "./types";
+import { AGE_BANDS, ATTENDANCE_STATUSES, GRADES, KARTE_ENTRY_KINDS, KARTE_GOAL_STATUSES, KARTE_GOAL_TERMS, PLAN_CODES, PREFECTURES, USER_ROLES, VIDEO_CATEGORIES } from "./types";
 
 /**
  * 入力スキーマ。クライアントのフォーム（React Hook Form）とサーバーの Server Action で同じものを使う。
@@ -252,4 +252,60 @@ export const videoInstructorsSchema = z.object({
     .max(200)
     .transform((value) => [...new Set(value.split(/[、,，\n]/).map((name) => name.trim()).filter((name) => name.length > 0))])
     .pipe(z.array(z.string().max(30, "コーチの呼び名は30文字までにしてください")).max(6, "担当コーチは6人までにしてください")),
+});
+
+// --- カルテ ---
+
+const jstDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日付をえらんでください");
+const optionalText = (label: string, max: number) => z.string().trim().max(max, `${label}は${max}文字までにしてください`);
+/** 動画のリンクは https だけ（javascript: などを入れさせない） */
+const httpsUrlSchema = z
+  .string()
+  .trim()
+  .max(500, "リンクが長すぎます")
+  .refine((value) => {
+    try {
+      return new URL(value).protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "動画のリンクは https:// から始まるものを貼ってください");
+const emptyToUndefined = (value: unknown) => (value === "" || value === null ? undefined : value);
+
+export const karteGoalSchema = z
+  .object({
+    studentId: z.string().min(1),
+    goalId: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    term: z.enum(KARTE_GOAL_TERMS, "期間の種類をえらんでください"),
+    title: trimmed("目標", 60),
+    reason: optionalText("なぜその目標にしたか", 200),
+    measure: optionalText("できたかどうかの見かた", 120),
+    startDate: jstDateSchema,
+    endDate: jstDateSchema,
+    status: z.enum(KARTE_GOAL_STATUSES, "状態をえらんでください"),
+    progress: z.coerce.number().int().min(0, "達成度は0〜100で入れてください").max(100, "達成度は0〜100で入れてください"),
+  })
+  .refine((value) => value.endDate >= value.startDate, { message: "おわりの日は、はじまりの日より後にしてください", path: ["endDate"] });
+
+export const karteActionSchema = z.object({
+  goalId: z.string().min(1),
+  text: trimmed("やること", 60),
+  frequency: optionalText("回数・タイミング", 30),
+});
+
+export const karteEntrySchema = z.object({
+  studentId: z.string().min(1),
+  kind: z.enum(KARTE_ENTRY_KINDS, "記録の種類をえらんでください"),
+  date: jstDateSchema,
+  title: trimmed("タイトル", 60),
+  body: optionalText("内容", 1000),
+  goalId: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  rating: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(5).optional()),
+  videoUrl: z.preprocess(emptyToUndefined, httpsUrlSchema.optional()),
+  modelVideoId: z.preprocess(emptyToUndefined, z.string().min(1).max(64).optional()),
+});
+
+export const karteReportQuerySchema = z.object({
+  month: z.preprocess(emptyToUndefined, z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional()),
+  months: z.preprocess(emptyToUndefined, z.enum(["1", "6"]).optional()),
 });

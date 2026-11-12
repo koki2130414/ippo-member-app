@@ -197,3 +197,26 @@ describe("担当コーチ（SQL）", () => {
     expect(await store.setVideoInstructors("no-such-video", [])).toBe(false);
   });
 });
+
+describe("カルテ（SQL）", () => {
+  it("目標・行動計画・記録の保存と、面談メモの除外が本番と同じSQLで動く", async () => {
+    const store = new SqlDataStore(client);
+    const studentId = "u-karte-0001";
+    await client.query("insert into members (user_id, role, display_name, created_at) values ($1, 'student', 'K', now())", [studentId]);
+    await store.saveKarteGoal({ id: "g1", studentId, term: "month", title: "左足", reason: "", measure: "", startDate: "2026-11-01", endDate: "2026-11-30", status: "active", progress: 10, createdBy: studentId, createdAt: "2026-11-01T00:00:00.000Z", updatedAt: "2026-11-01T00:00:00.000Z" });
+    await store.saveKarteGoal({ id: "g1", studentId, term: "month", title: "左足", reason: "", measure: "", startDate: "2026-11-01", endDate: "2026-11-30", status: "active", progress: 40, createdBy: studentId, createdAt: "2026-11-01T00:00:00.000Z", updatedAt: "2026-11-02T00:00:00.000Z" });
+    expect(await store.getKarteGoal("g1")).toMatchObject({ progress: 40, startDate: "2026-11-01", endDate: "2026-11-30" });
+    await store.saveKarteAction({ id: "a1", goalId: "g1", studentId, text: "壁当て", frequency: "週3", createdBy: studentId, createdAt: "2026-11-01T00:00:00.000Z", archivedAt: null });
+    expect(await store.listKarteActions(studentId)).toHaveLength(1);
+    const base = { studentId, title: "t", body: "", goalId: "g1", rating: null, videoUrl: null, modelVideoId: null, authorId: studentId, authorRole: "student" as const, createdAt: "2026-11-05T00:00:00.000Z" };
+    await store.createKarteEntry({ ...base, id: "e1", kind: "practice", date: "2026-11-05" });
+    await store.createKarteEntry({ ...base, id: "e2", kind: "interview", date: "2026-11-06" });
+    await store.createKarteEntry({ ...base, id: "e3", kind: "reflection", date: "2026-10-30", rating: 4 });
+    expect((await store.listKarteEntries(studentId, { includeStaffOnly: false })).map((entry) => entry.id)).toEqual(["e1", "e3"]);
+    expect((await store.listKarteEntries(studentId, { includeStaffOnly: true })).map((entry) => entry.id)).toEqual(["e2", "e1", "e3"]);
+    expect((await store.listKarteEntries(studentId, { from: "2026-11-01", to: "2026-11-30", includeStaffOnly: true })).map((entry) => entry.id)).toEqual(["e2", "e1"]);
+    expect(await store.getKarteEntry("e3")).toMatchObject({ rating: 4, date: "2026-10-30" });
+    await store.deleteKarteEntry("e1");
+    expect(await store.getKarteEntry("e1")).toBeNull();
+  });
+});

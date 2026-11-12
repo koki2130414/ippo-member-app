@@ -3,6 +3,7 @@ import type { MockState } from "../mock/mock-state";
 import { SEED_CREATED_AT } from "./base-content";
 import { createEmptySeed } from "./empty";
 import { DEMO_IDS } from "./ids";
+import { SAMPLE_KARTE_ACTIONS, SAMPLE_KARTE_ENTRIES, SAMPLE_KARTE_GOALS } from "./sample-karte";
 import { SAMPLE_EXTRA_VIDEOS, SAMPLE_LECTURES, SAMPLE_QUIZ_QUESTIONS } from "./sample-learning";
 
 /**
@@ -175,6 +176,10 @@ export function createSampleSeed(): MockState {
     { id: "item-sticker", name: "IPPO オリジナルステッカー", costPoints: 30, stock: 20 },
     { id: "item-message-card", name: "コーチからのメッセージカード", costPoints: 50, stock: 10 },
   );
+
+  state.karteGoals.push(...structuredClone(SAMPLE_KARTE_GOALS));
+  state.karteActions.push(...structuredClone(SAMPLE_KARTE_ACTIONS));
+  state.karteEntries.push(...structuredClone(SAMPLE_KARTE_ENTRIES));
 
   return state;
 }

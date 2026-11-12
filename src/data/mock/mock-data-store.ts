@@ -1,5 +1,6 @@
 import { decideExchange, sumBalance } from "@/domain/points";
-import type { ApplicationStatus, AuditLog, Credential, GuestLink, Invitation, ParentStudentLink, RegistrationApplication, Session, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
+import { STAFF_ONLY_KARTE_KINDS } from "@/domain/types";
+import type { ApplicationStatus, AuditLog, Credential, GuestLink, Invitation, KarteAction, KarteEntry, KarteGoal, ParentStudentLink, RegistrationApplication, Session, PlanCode, PointTransaction, PrivateProfile, PublicProfile, UserId, UserRole, VideoCategory, VideoProgress, ViewSession } from "@/domain/types";
 import type { AppendPointResult, DataStore, ExchangeResult, NewMember, Page, PageQuery } from "../data-store";
 import type { MockState } from "./mock-state";
 
@@ -85,6 +86,52 @@ export class MockDataStore implements DataStore {
       }
     }
     return count;
+  }
+
+  async saveKarteGoal(goal: KarteGoal) {
+    this.state.karteGoals = [...this.state.karteGoals.filter((item) => item.id !== goal.id), structuredClone(goal)];
+  }
+
+  async getKarteGoal(goalId: string) {
+    return copyOrNull(this.state.karteGoals.find((item) => item.id === goalId));
+  }
+
+  async listKarteGoals(studentId: string) {
+    return structuredClone(this.state.karteGoals.filter((item) => item.studentId === studentId).sort((a, b) => b.startDate.localeCompare(a.startDate) || b.createdAt.localeCompare(a.createdAt)));
+  }
+
+  async saveKarteAction(action: KarteAction) {
+    this.state.karteActions = [...this.state.karteActions.filter((item) => item.id !== action.id), structuredClone(action)];
+  }
+
+  async getKarteAction(actionId: string) {
+    return copyOrNull(this.state.karteActions.find((item) => item.id === actionId));
+  }
+
+  async listKarteActions(studentId: string) {
+    return structuredClone(this.state.karteActions.filter((item) => item.studentId === studentId).sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
+  }
+
+  async createKarteEntry(entry: KarteEntry) {
+    this.state.karteEntries.push(structuredClone(entry));
+  }
+
+  async getKarteEntry(entryId: string) {
+    return copyOrNull(this.state.karteEntries.find((item) => item.id === entryId));
+  }
+
+  async deleteKarteEntry(entryId: string) {
+    this.state.karteEntries = this.state.karteEntries.filter((item) => item.id !== entryId);
+  }
+
+  async listKarteEntries(studentId: string, query: { from?: string; to?: string; includeStaffOnly: boolean }) {
+    return structuredClone(
+      this.state.karteEntries
+        .filter((item) => item.studentId === studentId)
+        .filter((item) => query.includeStaffOnly || !STAFF_ONLY_KARTE_KINDS.includes(item.kind))
+        .filter((item) => (query.from === undefined || item.date >= query.from) && (query.to === undefined || item.date <= query.to))
+        .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)),
+    );
   }
 
   async getActiveGuestLink() {

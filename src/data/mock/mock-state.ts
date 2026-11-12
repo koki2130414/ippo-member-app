@@ -2,6 +2,9 @@ import type {
   AuditLog,
   Credential,
   GuestLink,
+  KarteAction,
+  KarteEntry,
+  KarteGoal,
   Invitation,
   RegistrationApplication,
   Session,
@@ -48,6 +51,9 @@ export interface MockState {
   applications: RegistrationApplication[];
   invitations: Invitation[];
   guestLinks: GuestLink[];
+  karteGoals: KarteGoal[];
+  karteActions: KarteAction[];
+  karteEntries: KarteEntry[];
   credentials: Credential[];
   sessions: Session[];
   videos: Video[];

@@ -88,6 +88,81 @@ export interface GuestLink {
   revokedAt: IsoDateTime | null;
 }
 
+// --- カルテ（個人の成長記録） ---
+
+/** 目標の期間。シーズン（半年〜1年）と月 */
+export const KARTE_GOAL_TERMS = ["season", "month"] as const;
+export type KarteGoalTerm = (typeof KARTE_GOAL_TERMS)[number];
+export const KARTE_GOAL_STATUSES = ["active", "achieved", "paused"] as const;
+export type KarteGoalStatus = (typeof KARTE_GOAL_STATUSES)[number];
+
+export interface KarteGoal {
+  id: string;
+  studentId: UserId;
+  term: KarteGoalTerm;
+  /** 目標（例: 左足でもインサイドで正確にパスを出せる） */
+  title: string;
+  /** なぜその目標にするのか（本人のことば） */
+  reason: string;
+  /** どうなったら達成か */
+  measure: string;
+  startDate: JstDate;
+  endDate: JstDate;
+  status: KarteGoalStatus;
+  /** 達成度 0〜100（本人とコーチで見直す） */
+  progress: number;
+  createdBy: UserId;
+  createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
+}
+
+/** 行動計画（目標をブレイクダウンした「毎日・毎週やること」） */
+export interface KarteAction {
+  id: string;
+  goalId: string;
+  studentId: UserId;
+  text: string;
+  /** いつ・どれくらい（例: 週3回 10分） */
+  frequency: string;
+  createdBy: UserId;
+  createdAt: IsoDateTime;
+  /** やめた・入れかえたときに入る */
+  archivedAt: IsoDateTime | null;
+}
+
+/**
+ * カルテの記録。
+ * - class: クラスへの参加（コーチ・運営が記録）
+ * - personal: パーソナル（1on1）を受けた（テーマと、本人へのひとこと。本人・保護者も見られる）
+ * - practice: 自主練・取り組み（本人も書ける）
+ * - reflection: 目標の振り返り（自己評価 1〜5 とコメント）
+ * - feedback: コーチからのフィードバック（映像リンク・お手本の動画を付けられる）
+ * - interview: 面談メモ。**コーチと運営だけ**が見られる（本人・保護者には出さない。運営の判断 2026-11-12）
+ */
+export const KARTE_ENTRY_KINDS = ["class", "personal", "practice", "reflection", "feedback", "interview"] as const;
+export type KarteEntryKind = (typeof KARTE_ENTRY_KINDS)[number];
+/** コーチと運営だけが見られる種類 */
+export const STAFF_ONLY_KARTE_KINDS: readonly KarteEntryKind[] = ["interview"];
+
+export interface KarteEntry {
+  id: string;
+  studentId: UserId;
+  kind: KarteEntryKind;
+  date: JstDate;
+  title: string;
+  body: string;
+  goalId: string | null;
+  /** 振り返りの自己評価 1〜5 */
+  rating: number | null;
+  /** 本人のプレー映像などのリンク（https のみ） */
+  videoUrl: string | null;
+  /** お手本としてひも付けるクラス動画 */
+  modelVideoId: string | null;
+  authorId: UserId;
+  authorRole: UserRole;
+  createdAt: IsoDateTime;
+}
+
 export interface Invitation {
   id: string;
   tokenHash: string;
@@ -605,6 +680,10 @@ export const AUDIT_ACTIONS = [
   "admin.setup",
   "guest_link.issue",
   "guest_link.revoke",
+  "karte.goal_save",
+  "karte.action_save",
+  "karte.entry_create",
+  "karte.entry_delete",
   "member.delete",
   "member.plan_assign",
   "link.create",

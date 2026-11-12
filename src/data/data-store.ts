@@ -3,6 +3,9 @@ import type {
   AuditLog,
   Credential,
   GuestLink,
+  KarteAction,
+  KarteEntry,
+  KarteGoal,
   Invitation,
   ParentStudentLink,
   RegistrationApplication,
@@ -109,6 +112,24 @@ export interface DataStore {
   /** 有効な見学リンクを止める。止めた本数を返す */
   revokeGuestLinks(revokedAt: string): Promise<number>;
   getActiveGuestLink(): Promise<GuestLink | null>;
+
+  // --- カルテ ---
+  /** 目標を入れる（同じ id があれば置きかえる） */
+  saveKarteGoal(goal: KarteGoal): Promise<void>;
+  getKarteGoal(goalId: string): Promise<KarteGoal | null>;
+  /** 新しい期間から順に */
+  listKarteGoals(studentId: UserId): Promise<KarteGoal[]>;
+  saveKarteAction(action: KarteAction): Promise<void>;
+  getKarteAction(actionId: string): Promise<KarteAction | null>;
+  listKarteActions(studentId: UserId): Promise<KarteAction[]>;
+  createKarteEntry(entry: KarteEntry): Promise<void>;
+  getKarteEntry(entryId: string): Promise<KarteEntry | null>;
+  deleteKarteEntry(entryId: string): Promise<void>;
+  /**
+   * 記録を新しい日付から順に。includeStaffOnly が false のときは、面談メモ（コーチと運営だけの記録）を**データの段階で**含めない
+   * （画面で隠すのではなく、そもそも取り出さない）
+   */
+  listKarteEntries(studentId: UserId, query: { from?: string; to?: string; includeStaffOnly: boolean }): Promise<KarteEntry[]>;
   findActiveGuestLinkByTokenHash(tokenHash: string): Promise<GuestLink | null>;
   getCredentialByLoginId(loginId: string): Promise<Credential | null>;
   getCredentialByUserId(userId: UserId): Promise<Credential | null>;

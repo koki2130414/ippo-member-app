@@ -1,5 +1,13 @@
 import { decideExchange } from "@/domain/points";
+import { KARTE_ENTRY_KINDS, KARTE_GOAL_STATUSES, KARTE_GOAL_TERMS, STAFF_ONLY_KARTE_KINDS } from "@/domain/types";
+import { toJstDate } from "@/domain/jst";
 import type {
+  KarteAction,
+  KarteEntry,
+  KarteEntryKind,
+  KarteGoal,
+  KarteGoalStatus,
+  KarteGoalTerm,
   AgeBand,
   ApplicationStatus,
   AuditLog,
@@ -171,6 +179,71 @@ function toApplication(row: Row): RegistrationApplication {
 
 function toGuestLink(row: Row): GuestLink {
   return { id: text(row, "id"), tokenHash: text(row, "token_hash"), createdBy: text(row, "created_by"), createdAt: iso(row, "created_at"), revokedAt: isoOrNull(row, "revoked_at") };
+}
+
+function jstDate(row: Row, key: string): string {
+  const value = row[key];
+  if (value instanceof Date) return toJstDate(value);
+  if (typeof value === "string") return value.slice(0, 10);
+  throw new Error(`unexpected date column: ${key}`);
+}
+
+const KARTE_TERMS: readonly KarteGoalTerm[] = KARTE_GOAL_TERMS;
+const KARTE_STATUSES: readonly KarteGoalStatus[] = KARTE_GOAL_STATUSES;
+const KARTE_KINDS: readonly KarteEntryKind[] = KARTE_ENTRY_KINDS;
+function oneOf<T extends string>(values: readonly T[], value: string): T {
+  const found = values.find((item) => item === value);
+  if (found === undefined) throw new Error(`unexpected value: ${value}`);
+  return found;
+}
+
+function toKarteGoal(row: Row): KarteGoal {
+  return {
+    id: text(row, "id"),
+    studentId: text(row, "student_id"),
+    term: oneOf(KARTE_TERMS, text(row, "term")),
+    title: text(row, "title"),
+    reason: text(row, "reason"),
+    measure: text(row, "measure"),
+    startDate: jstDate(row, "start_date"),
+    endDate: jstDate(row, "end_date"),
+    status: oneOf(KARTE_STATUSES, text(row, "status")),
+    progress: num(row, "progress"),
+    createdBy: text(row, "created_by"),
+    createdAt: iso(row, "created_at"),
+    updatedAt: iso(row, "updated_at"),
+  };
+}
+
+function toKarteAction(row: Row): KarteAction {
+  return {
+    id: text(row, "id"),
+    goalId: text(row, "goal_id"),
+    studentId: text(row, "student_id"),
+    text: text(row, "text"),
+    frequency: text(row, "frequency"),
+    createdBy: text(row, "created_by"),
+    createdAt: iso(row, "created_at"),
+    archivedAt: isoOrNull(row, "archived_at"),
+  };
+}
+
+function toKarteEntry(row: Row): KarteEntry {
+  return {
+    id: text(row, "id"),
+    studentId: text(row, "student_id"),
+    kind: oneOf(KARTE_KINDS, text(row, "kind")),
+    date: jstDate(row, "date"),
+    title: text(row, "title"),
+    body: text(row, "body"),
+    goalId: textOrNull(row, "goal_id"),
+    rating: numOrNull(row, "rating"),
+    videoUrl: textOrNull(row, "video_url"),
+    modelVideoId: textOrNull(row, "model_video_id"),
+    authorId: text(row, "author_id"),
+    authorRole: toRole(text(row, "author_role")),
+    createdAt: iso(row, "created_at"),
+  };
 }
 
 function toInvitation(row: Row): Invitation {
@@ -356,6 +429,70 @@ export class SqlDataStore implements DataStore {
 
   async revokeGuestLinks(revokedAt: string) {
     return (await this.rows("update guest_links set revoked_at = $1 where revoked_at is null returning id", [revokedAt])).length;
+  }
+
+  async saveKarteGoal(goal: KarteGoal) {
+    await this.rows(
+      `insert into karte_goals (id, student_id, term, title, reason, measure, start_date, end_date, status, progress, created_by, created_at, updated_at)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       on conflict (id) do update set term = excluded.term, title = excluded.title, reason = excluded.reason, measure = excluded.measure,
+         start_date = excluded.start_date, end_date = excluded.end_date, status = excluded.status, progress = excluded.progress, updated_at = excluded.updated_at`,
+      [goal.id, goal.studentId, goal.term, goal.title, goal.reason, goal.measure, goal.startDate, goal.endDate, goal.status, goal.progress, goal.createdBy, goal.createdAt, goal.updatedAt],
+    );
+  }
+
+  async getKarteGoal(goalId: string) {
+    const row = await this.first("select * from karte_goals where id = $1", [goalId]);
+    return row ? toKarteGoal(row) : null;
+  }
+
+  async listKarteGoals(studentId: string) {
+    return (await this.rows("select * from karte_goals where student_id = $1 order by start_date desc, created_at desc", [studentId])).map(toKarteGoal);
+  }
+
+  async saveKarteAction(action: KarteAction) {
+    await this.rows(
+      `insert into karte_actions (id, goal_id, student_id, text, frequency, created_by, created_at, archived_at) values ($1, $2, $3, $4, $5, $6, $7, $8)
+       on conflict (id) do update set text = excluded.text, frequency = excluded.frequency, archived_at = excluded.archived_at`,
+      [action.id, action.goalId, action.studentId, action.text, action.frequency, action.createdBy, action.createdAt, action.archivedAt],
+    );
+  }
+
+  async getKarteAction(actionId: string) {
+    const row = await this.first("select * from karte_actions where id = $1", [actionId]);
+    return row ? toKarteAction(row) : null;
+  }
+
+  async listKarteActions(studentId: string) {
+    return (await this.rows("select * from karte_actions where student_id = $1 order by created_at", [studentId])).map(toKarteAction);
+  }
+
+  async createKarteEntry(entry: KarteEntry) {
+    await this.rows(
+      `insert into karte_entries (id, student_id, kind, date, title, body, goal_id, rating, video_url, model_video_id, author_id, author_role, created_at)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+      [entry.id, entry.studentId, entry.kind, entry.date, entry.title, entry.body, entry.goalId, entry.rating, entry.videoUrl, entry.modelVideoId, entry.authorId, entry.authorRole, entry.createdAt],
+    );
+  }
+
+  async getKarteEntry(entryId: string) {
+    const row = await this.first("select * from karte_entries where id = $1", [entryId]);
+    return row ? toKarteEntry(row) : null;
+  }
+
+  async deleteKarteEntry(entryId: string) {
+    await this.rows("delete from karte_entries where id = $1", [entryId]);
+  }
+
+  async listKarteEntries(studentId: string, query: { from?: string; to?: string; includeStaffOnly: boolean }) {
+    const rows = await this.rows(
+      `select * from karte_entries where student_id = $1
+         and ($2::date is null or date >= $2::date) and ($3::date is null or date <= $3::date)
+         and ($4::boolean or not (kind = any($5::text[])))
+       order by date desc, created_at desc`,
+      [studentId, query.from ?? null, query.to ?? null, query.includeStaffOnly, `{${STAFF_ONLY_KARTE_KINDS.join(",")}}`],
+    );
+    return rows.map(toKarteEntry);
   }
 
   async getActiveGuestLink() {

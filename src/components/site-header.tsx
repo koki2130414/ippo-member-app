@@ -7,20 +7,26 @@ import { Button } from "./ui/button";
 const NAV_BY_ROLE: Record<UserRole, { href: string; label: string; testId: string }[]> = {
   student: [
     { href: "/home", label: "ホーム", testId: "nav-home" },
+    { href: "/karte", label: "カルテ", testId: "nav-karte" },
     { href: "/videos", label: "クラス動画", testId: "nav-videos" },
     { href: "/lectures", label: "講義", testId: "nav-lectures" },
   ],
   guardian: [
     { href: "/guardian", label: "ホーム", testId: "nav-home" },
+    { href: "/karte", label: "カルテ", testId: "nav-karte" },
     { href: "/videos", label: "クラス動画", testId: "nav-videos" },
     { href: "/lectures", label: "講義", testId: "nav-lectures" },
   ],
-  coach: [{ href: "/coach", label: "コーチのホーム", testId: "nav-home" }],
+  coach: [
+    { href: "/coach", label: "コーチのホーム", testId: "nav-home" },
+    { href: "/karte/students", label: "生徒のカルテ", testId: "nav-karte" },
+  ],
   admin: [
     { href: "/admin", label: "運営のホーム", testId: "nav-home" },
     { href: "/admin/applications", label: "申し込み", testId: "nav-admin-applications" },
     { href: "/admin/users?tab=members", label: "会員", testId: "nav-admin-users" },
     { href: "/admin/videos", label: "クラス動画", testId: "nav-admin-videos" },
+    { href: "/karte/students", label: "カルテ", testId: "nav-karte" },
     { href: "/home", label: "会員画面", testId: "nav-admin-member-view" },
   ],
 };
@@ -30,7 +36,7 @@ const ROLE_LABEL: Record<UserRole, string> = { student: "生徒", guardian: "保
 /** 会員画面の共通ヘッダー。表示名だけを出し、本名は出さない */
 export function SiteHeader({ role, displayName, isDemo, isGuest }: { role: UserRole; displayName: string; isDemo: boolean; isGuest: boolean }) {
   return (
-    <header className="border-b-4 border-primary bg-background" data-role={role}>
+    <header className="border-b-4 border-primary bg-background print:hidden" data-role={role}>
       {isGuest ? (
         <p className="bg-accent px-4 py-1 text-center text-xs font-semibold text-accent-foreground" data-testid="guest-banner">
           見学モードです（ログインしていません）。「見おわった」やポイントは記録されません
